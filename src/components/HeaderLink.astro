@@ -5,10 +5,19 @@ type Props = HTMLAttributes<'a'>;
 
 const { href, class: className, ...props } = Astro.props;
 const pathname = Astro.url.pathname.replace(import.meta.env.BASE_URL, '');
-const subpath = pathname.match(/[^\/]+/g);
-const isActive = href === pathname || href === '/' + (subpath?.[0] || '');
+const subpath = pathname.match(/[^/]+/g);
+const FIRST_ELEMENT_INDEX = 0;
+const isActive = href === pathname || href === `/${subpath?.[FIRST_ELEMENT_INDEX] || ''}`;
 ---
 
-<a href={href} class:list={[className, 'nav-link inline-block no-underline', { 'font-bold underline': isActive }]} {...props}>
+<a
+	href={href}
+	class:list={[
+		className,
+		'nav-link inline-block no-underline',
+		{ 'font-bold underline': isActive }
+	]}
+	{...props}
+>
 	<slot />
 </a>

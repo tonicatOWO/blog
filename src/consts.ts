@@ -1,2 +1,4 @@
-export const SITE_TITLE = 'Astro Blog';
-export const SITE_DESCRIPTION = 'Welcome to my website!';
+const SITE_TITLE = 'Astro Blog';
+const SITE_DESCRIPTION = 'Welcome to my website!';
+
+export { SITE_TITLE, SITE_DESCRIPTION };

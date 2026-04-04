@@ -65,9 +65,11 @@
 		"unicorn/no-console-spaces": "warn",
 		"unicorn/prefer-string-starts-ends-with": "error",
 		"unicorn/prefer-type-error": "error",
+		"unicorn/filename-case": "off",
 		"import/no-cycle": "warn",
 		"import/no-duplicates": "error",
-		"import/no-useless-path-segments": "warn"
+		"import/no-useless-path-segments": "warn",
+		"import/no-named-export": "off"
 	},
 	"settings": {
 		"jsx-a11y": {
