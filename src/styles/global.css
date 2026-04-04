@@ -1,125 +1,21 @@
-/*
-  Simplified CSS - Layout Structure Only
-  Preserves layout and structure while removing decorative elements
- */
-
-/* Basic layout structure */
-body {
-	margin: 0;
-	padding: 0;
-	text-align: left;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	font-size: 20px;
-	line-height: 1.7;
+/* Atkinson font-face declarations */
+@font-face {
+	font-family: 'Atkinson';
+	src: url('/fonts/atkinson-regular.woff') format('woff');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
 }
 
-/* Main container layout */
-main {
-	width: 720px;
-	max-width: calc(100% - 2em);
-	margin: auto;
-	padding: 3em 1em;
-}
-
-/* Heading structure */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	margin: 0 0 0.5rem 0;
-	line-height: 1.2;
-}
-
-h1 {
-	font-size: 3.052em;
-}
-h2 {
-	font-size: 2.441em;
-}
-h3 {
-	font-size: 1.953em;
-}
-h4 {
-	font-size: 1.563em;
-}
-h5 {
-	font-size: 1.25em;
-}
-
-/* Text elements structure */
-p {
-	margin-bottom: 1em;
-}
-
-.prose p {
-	margin-bottom: 2em;
-}
-
-strong,
-b {
+@font-face {
+	font-family: 'Atkinson';
+	src: url('/fonts/atkinson-bold.woff') format('woff');
 	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
 }
 
-/* Form elements structure */
-textarea {
-	width: 100%;
-	font-size: 16px;
-}
-
-input {
-	font-size: 16px;
-}
-
-/* Table structure */
-table {
-	width: 100%;
-}
-
-/* Image structure */
-img {
-	max-width: 100%;
-	height: auto;
-}
-
-/* Code block structure */
-code {
-	padding: 2px 5px;
-}
-
-pre {
-	padding: 1.5em;
-}
-
-pre > code {
-	all: unset;
-}
-
-/* Quote structure */
-blockquote {
-	padding: 0 0 0 20px;
-	margin: 0;
-	font-size: 1.333em;
-}
-
-/* Horizontal rule structure */
-hr {
-	border: none;
-	border-top: 1px solid;
-}
-
-/* Responsive layout adjustments */
-@media (max-width: 720px) {
-	body {
-		font-size: 18px;
-	}
-	main {
-		padding: 1em;
-	}
-}
-
+/* Screen reader only utility - keep as it's accessibility related */
 .sr-only {
 	border: 0;
 	padding: 0;
