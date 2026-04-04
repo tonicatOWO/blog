@@ -1,0 +1,59 @@
+[
+	{
+		"name": "astro-static-assets",
+		"path_regex": "^/_astro/",
+		"action": "ALLOW"
+	},
+	{
+		"name": "fonts",
+		"path_regex": "^/fonts/",
+		"action": "ALLOW"
+	},
+	{
+		"name": "favicon",
+		"path_regex": "^/favicon",
+		"action": "ALLOW"
+	},
+	{
+		"name": "rss-feed",
+		"path_regex": "^/rss\\.xml$",
+		"action": "ALLOW"
+	},
+	{
+		"name": "blog-index",
+		"path_regex": "^/blog/?$",
+		"action": "ALLOW"
+	},
+	{
+		"name": "public-pages",
+		"path_regex": "^/$|^/about/?$|^/tags/?",
+		"action": "ALLOW"
+	},
+	{
+		"import": "(data)/crawlers/googlebot.yaml"
+	},
+	{
+		"import": "(data)/crawlers/bingbot.yaml"
+	},
+	{
+		"import": "(data)/crawlers/duckduckbot.yaml"
+	},
+	{
+		"import": "(data)/bots/ai-robots-txt.yaml"
+	},
+	{
+		"import": "(data)/bots/us-ai-scraper.yaml"
+	},
+	{
+		"import": "(data)/common/keep-internet-working.yaml"
+	},
+	{
+		"name": "protect-blog-posts",
+		"path_regex": "^/blog/.+",
+		"action": "CHALLENGE"
+	},
+	{
+		"name": "default-allow",
+		"action": "ALLOW"
+	}
+]

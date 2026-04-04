@@ -10,6 +10,7 @@ export async function GET(context) {
 		site: context.site,
 		items: posts.map(post => ({
 			...post.data,
+			description: post.data.description,
 			link: `/blog/${post.id}/`
 		}))
 	});
