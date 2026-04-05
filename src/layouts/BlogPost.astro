@@ -33,9 +33,9 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 						)
 					}
 				</div>
-				<div class='prose-content layout-container py-10'>
+				<div class='content container py-10'>
 					<div class='title mb-4 py-4 text-center leading-none'>
-						<div class='date post-meta mb-2'>
+						<div class='date meta mb-2'>
 							<FormattedDate date={pubDate} />
 							{
 								updatedDate && (
@@ -50,7 +50,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 								)
 							}
 						</div>
-						<h1 class='post-title m-0 mb-2'>{title}</h1>
+						<h1 class='title m-0 mb-2'>{title}</h1>
 						<hr />
 					</div>
 					<slot />

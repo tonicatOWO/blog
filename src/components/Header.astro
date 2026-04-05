@@ -3,8 +3,8 @@ import HeaderLink from './HeaderLink.astro';
 import { SITE_TITLE } from '../consts';
 ---
 
-<header class='layout-container'>
-	<nav class='flex items-center justify-between'>
+<header class='nerd-mono py-4'>
+	<nav class='flex items-center justify-between mx-10'>
 		<h2 class='m-0 text-base'>
 			<a href='/' class='text-inherit no-underline hover:text-inherit'
 				>{SITE_TITLE}</a
@@ -13,27 +13,6 @@ import { SITE_TITLE } from '../consts';
 		<div class='internal-links'>
 			<HeaderLink href='/blog'>Blog</HeaderLink>
 		</div>
-		<div class='social-links flex gap-2 sm:flex hidden'>
-			<a href='https://m.webtoo.ls/@astro' target='_blank' class='flex p-2'>
-				<span class='sr-only'>Follow Astro on Mastodon</span>
-				<div class='i-lucide-mastodon text-xl'></div>
-			</a>
-			<a
-				href='https://twitter.com/astrodotbuild'
-				target='_blank'
-				class='flex p-2'
-			>
-				<span class='sr-only'>Follow Astro on Twitter</span>
-				<div class='i-lucide-twitter text-xl'></div>
-			</a>
-			<a
-				href='https://github.com/withastro/astro'
-				target='_blank'
-				class='flex p-2'
-			>
-				<span class='sr-only'>Go to Astro's GitHub repo</span>
-				<div class='i-lucide-github text-xl'></div>
-			</a>
-		</div>
+		<!-- Social links placeholder -->
 	</nav>
 </header>

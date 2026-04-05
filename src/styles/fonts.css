@@ -1,0 +1,71 @@
+/* Atkinson font-face declarations */
+@font-face {
+	font-family: 'Atkinson';
+	src: url('/fonts/atkinson-regular.woff') format('woff');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'Atkinson';
+	src: url('/fonts/atkinson-bold.woff') format('woff');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* JetBrains Mono Nerd Font declarations */
+@font-face {
+	font-family: 'JetBrains Mono Nerd Font';
+	src: url('/fonts/JetBrainsMonoNLNerdFont-Regular.ttf') format('truetype');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'JetBrains Mono Nerd Font';
+	src: url('/fonts/JetBrainsMonoNLNerdFont-Italic.ttf') format('truetype');
+	font-weight: 400;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'JetBrains Mono Nerd Font';
+	src: url('/fonts/JetBrainsMonoNLNerdFont-Bold.ttf') format('truetype');
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Chen Yuluoyan Thin font declaration */
+@font-face {
+	font-family: 'Chen Yuluoyan';
+	src: url('/fonts/ChenYuluoyan-2.0-Thin.ttf') format('truetype');
+	font-weight: 100;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Font utility classes */
+.nerd-mono {
+	font-family: 'JetBrains Mono Nerd Font', monospace;
+	font-weight: 400;
+	font-style: normal;
+}
+
+.nerd-mono.italic {
+	font-style: italic;
+}
+
+.nerd-mono.bold {
+	font-weight: 700;
+}
+
+.chinese-text {
+	font-family: 'Chen Yuluoyan', sans-serif;
+	font-weight: 100;
+	font-style: normal;
+}
