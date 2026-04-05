@@ -1,9 +1,9 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
-import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
+import BaseHead from '@layout/BaseHead.astro';
+import Footer from '@layout/Footer.astro';
+import FormattedDate from '@utils/FormattedDate.astro';
+import Header from '@layout/Header.astro';
 import { Image } from 'astro:assets';
 
 type Props = CollectionEntry<'blog'>['data'];

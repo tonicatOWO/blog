@@ -2,10 +2,10 @@
 // Import the global.css file here so that it is included on
 // All pages through the use of the <BaseHead /> component.
 // eslint-disable-next-line import/no-unassigned-import
-import '../styles/global.css';
-import FallbackImage from '../assets/blog-placeholder-1.jpg';
+import '@styles/global.css';
+import FallbackImage from '@assets/blog-placeholder-1.jpg';
 import type { ImageMetadata } from 'astro';
-import { SITE_TITLE } from '../consts';
+import { SITE_TITLE } from '@consts';
 
 interface Props {
 	title: string;
