@@ -1,5 +1,6 @@
 ---
 import HeaderLink from '@ui/HeaderLink.astro';
+import ThemeToggle from '@utils/ThemeToggle.svelte';
 import { SITE_TITLE } from '@consts';
 ---
 
@@ -12,6 +13,7 @@ import { SITE_TITLE } from '@consts';
 		</h2>
 		<div class='internal-links'>
 			<HeaderLink href='/blog'>Blog</HeaderLink>
+			<ThemeToggle client:load />
 		</div>
 		<!-- Social links placeholder -->
 	</nav>

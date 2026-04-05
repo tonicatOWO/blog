@@ -1,8 +1,11 @@
-import { defineConfig, presetWind, presetAttributify, presetIcons, presetTypography } from 'unocss';
+import { defineConfig, presetAttributify, presetIcons, presetTypography } from 'unocss';
+import presetWind4 from '@unocss/preset-wind4';
 
 export default defineConfig({
 	presets: [
-		presetWind(),
+		presetWind4({
+			preflights: { reset: true }
+		}),
 		presetAttributify(),
 		presetIcons({
 			scale: 1.2,
@@ -21,7 +24,6 @@ export default defineConfig({
 			sans: ['Atkinson', 'ui-sans-serif', 'system-ui']
 		},
 		colors: {
-			// Theme colors placeholder
 			primary: '#2337ff',
 			secondary: '#000d8a',
 			background: 'rgb(15, 18, 25)',
