@@ -3,6 +3,8 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '@consts';
 import BaseHead from '@layout/BaseHead.astro';
 import Footer from '@layout/Footer.astro';
 import Header from '@layout/Header.astro';
+import BlogCards from '@components/ui/BlogCards.astro';
+import SkillCards from '@components/ui/SkillCards.svelte';
 ---
 
 <!doctype html>
@@ -12,12 +14,30 @@ import Header from '@layout/Header.astro';
 	</head>
 	<body>
 		<Header />
-		<main class="nerd-mono">
-                        hello world
-                        <h1 class="chinese-text text-4xl">
-                        你好世界
-                        </h1>
+		<main
+			class='nerd-mono flex-1 flex flex-col items-center justify-center gap-24 py-16'
+		>
+			<div class='pt-16'>
+				<h1 class='text-5xl font-bold mb-4'>
+					Welcome to tonicatOWO's Blog
+				</h1>
+				<p class='text-lg text-gray-600 mb-8'>
+					A place where I share my thoughts and projects.
+				</p>
+			</div>
+			<SkillCards />
+			<BlogCards />
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	body {
+		background-color: var(--color-background);
+		color: var(--color-text-primary);
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+	}
+</style>

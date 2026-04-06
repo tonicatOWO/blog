@@ -31,7 +31,7 @@ const posts = blogCollection.toSorted(
 							>
 								<a
 									href={`/blog/${post.id}/`}
-									class='block no-underline transition duration-200 ease-in-out group'
+									class='block no-underline transition duration-200 ease-in-out group hover:bg-[var(--color-surface-hover)] rounded-xl p-2'
 								>
 									{post.data.heroImage && (
 										<Image
@@ -43,13 +43,13 @@ const posts = blogCollection.toSorted(
 													.heroImage
 											}
 											alt=''
-											class={`mb-2 rounded-3xl ${index === 0 ? 'first:w-full' : ''} group-hover:shadow-lg`}
+											class={`mb-2 rounded-3xl ${index === 0 ? 'first:w-full' : ''} transition duration-200 ease-in-out`}
 										/>
 									)}
-									<h4 class="m-0 text-black leading-none title ${index === 0 ? 'first:text-4xl max-sm:first:text-2xl' : ''} group-hover:text-accent">
+									<h4 class={`m-0 leading-none title ${index === 0 ? 'first:text-4xl max-sm:first:text-2xl' : ''}`}>
 										{post.data.title}
 									</h4>
-									<p class='m-0 text-gray date group-hover:text-accent'>
+									<p class='m-0 date mt-2'>
 										<FormattedDate
 											date={
 												post
@@ -68,3 +68,31 @@ const posts = blogCollection.toSorted(
 		<Footer />
 	</body>
 </html>
+
+<style>
+	body {
+		background-color: var(--color-background);
+		color: var(--color-text-primary);
+	}
+	
+	.title {
+		color: var(--color-text-primary);
+	}
+	
+	.date {
+		color: var(--color-text-tertiary);
+	}
+	
+	a:hover .title {
+		color: var(--color-primary);
+	}
+	
+	a:hover .date {
+		color: var(--color-primary-hover);
+	}
+	
+	/* Adding specific shadow based on theme variables for image */
+	a:hover img {
+		box-shadow: 0 10px 15px -3px var(--shadow-color-strong);
+	}
+</style>

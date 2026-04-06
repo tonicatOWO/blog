@@ -2,9 +2,15 @@
 const today = new Date();
 ---
 
-<footer
-	class='container py-8 pb-24 text-center bg-gradient-to-b from-gray-50 to-white text-gray-600'
->
-	&copy; {today.getFullYear()} tonicatOWO . All rights reserved.
+<footer class='w-screen py-10 text-center'>
+	&copy; {today.getFullYear()} tonicatOWO. All rights reserved.
 	<!-- Social links placeholder -->
 </footer>
+
+<style>
+	footer {
+		background-color: var(--color-background-subtle);
+		color: var(--color-text-secondary);
+		border-top: 1px solid var(--color-border-subtle);
+	}
+</style>

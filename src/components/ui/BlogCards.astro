@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import FormattedDate from '@utils/FormattedDate.astro';
+
+const blogCollection = await getCollection('blog');
+const latestPost = blogCollection.toSorted(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+)[0];
+---
+
+{
+	latestPost && (
+		<div class='p-8 rounded-2xl ds-bg-surface-elevated ds-border-subtle border border-solid mt-8 mx-auto w-11/12 max-w-4xl nerd-mono'>
+			<h2 class='ds-text-tertiary text-xl mb-2'>{latestPost.data.title}</h2>
+			<p class='nerd-mono ds-text-primary mb-6'>{latestPost.data.description}</p>
+			<p class='m-0 date mt-2'>
+				<FormattedDate date={latestPost.data.pubDate} />
+			</p>
+			<div class='flex gap-4 mt-8'>
+				<a
+					href={`/blog/${latestPost.id}/`}
+					class='px-6 py-2 rounded-lg no-underline font-medium hover:opacity-90 transition-opacity btn-primary'
+				>
+					閱讀更多
+				</a>
+			</div>
+		</div>
+	)
+}
+
+<style>
+	.btn-primary {
+		background-color: var(--color-primary);
+		color: var(--color-text-on-dark);
+	}
+</style>

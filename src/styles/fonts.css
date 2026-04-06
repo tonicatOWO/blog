@@ -51,7 +51,9 @@
 
 /* Font utility classes */
 .nerd-mono {
-	font-family: 'JetBrains Mono Nerd Font', monospace;
+	font-family:
+		'JetBrains Mono Nerd Font', 'Noto Sans CJK TC', 'Noto Serif CJK TC', 'PingFang TC',
+		'Microsoft JhengHei', 'WenQuanYi Micro Hei', monospace, sans-serif;
 	font-weight: 400;
 	font-style: normal;
 }
@@ -68,4 +70,11 @@
 	font-family: 'Chen Yuluoyan', sans-serif;
 	font-weight: 100;
 	font-style: normal;
+}
+
+body,
+.main-text {
+	font-family:
+		'JetBrains Mono Nerd Font', 'Noto Sans CJK TC', 'Noto Serif CJK TC', 'PingFang TC',
+		'Microsoft JhengHei', 'WenQuanYi Micro Hei', monospace, sans-serif;
 }
