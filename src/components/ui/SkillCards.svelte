@@ -14,7 +14,7 @@
 				'UnoCSS',
 				'Vite',
 			],
-			colorClass: 'ds-bg-primary-subtle ds-text-brand border-rose-300/30',
+			colorClass: 'ds-bg-primary-subtle ds-text-brand ds-border border-opacity-30',
 		},
 		{
 			name: 'Backend',
@@ -26,7 +26,7 @@
 				'Discord bots',
 				'Shell scripting',
 			],
-			colorClass: 'ds-bg-info/20 ds-text-info border-blue-400/30',
+			colorClass: 'bg-blue-100/50 dark:bg-blue-900/30 ds-text-info border-blue-400/30',
 		},
 		{
 			name: 'Tooling / Infra',
@@ -40,28 +40,25 @@
 				'Forgejo',
 				'GitHub',
 			],
-			colorClass: 'ds-bg-success/20 ds-text-success border-emerald-400/30',
+			colorClass: 'bg-emerald-100/50 dark:bg-emerald-900/30 ds-text-success border-emerald-400/30',
 		},
 		{
 			name: 'Other',
 			items: ['C++', 'GDScript', 'Rust', 'C'],
-			colorClass: 'ds-bg-warning/20 ds-text-warning border-amber-400/30',
+			colorClass: 'bg-amber-100/50 dark:bg-amber-900/30 ds-text-warning border-amber-400/30',
 		},
 	];
 </script>
 
-<div class="flex flex-col items-center justify-center gap-8">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mx-auto px-4">
 	{#each skillGroups as group}
-		<div class="flex flex-col items-center gap-3">
-			<span
-				class="text-xs uppercase tracking-widest ds-text-tertiary font-semibold"
-				>{group.name}</span
-			>
-			<ul class="flex flex-wrap justify-center px-4 gap-3">
+		<div class="flex flex-col items-start gap-3 p-5 rounded-xl ds-border ds-bg-surface-elevated shadow-sm">
+			<span class="text-xs uppercase tracking-widest ds-text-tertiary font-semibold">
+				{group.name}
+			</span>
+			<ul class="flex flex-wrap gap-2">
 				{#each group.items as skill}
-					<li
-						class="px-3 py-1 rounded-md text-sm border {group.colorClass}"
-					>
+					<li class="px-3 py-1 rounded-md text-sm border {group.colorClass}">
 						{skill}
 					</li>
 				{/each}
