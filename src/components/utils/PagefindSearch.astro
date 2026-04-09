@@ -1,0 +1,160 @@
+---
+import Search from 'astro-pagefind/components/Search';
+---
+
+<div class='search-container'>
+	<Search
+		id='search'
+		className='pagefind-ui'
+		class='mx-2'
+		uiOptions={{
+			showImages: false,
+			showEmptyFilters: false,
+			translations: {
+				placeholder: 'Search...',
+				clear_search: 'Clear',
+				load_more: 'Load more results',
+				search_label: 'Search this site',
+				filters_label: 'Filters',
+				zero_results: 'No results found for [SEARCH_TERM]',
+				many_results: '[COUNT] results found for [SEARCH_TERM]',
+				one_result: '[COUNT] result found for [SEARCH_TERM]',
+				alt_search: 'No results for [SEARCH_TERM]. Showing results for [DIFFERENT_TERM] instead',
+				search_suggestion:
+					'No results for [SEARCH_TERM]. Try one of the following terms:',
+				searching: 'Searching for [SEARCH_TERM]...',
+			},
+		}}
+	/>
+</div>
+
+<style is:global>
+	/* 1. Container & Variables */
+	.search-container {
+		position: relative;
+		width: 100%;
+	}
+
+	.pagefind-ui {
+		--pagefind-ui-primary: var(--color-primary, #3b82f6);
+		--pagefind-ui-text: var(--color-text-primary, #111827);
+		--pagefind-ui-background: var(--color-surface, #ffffff);
+		--pagefind-ui-border: var(--color-border, #e5e7eb);
+		--pagefind-ui-tag: var(--color-surface-hover, #f3f4f6);
+		--pagefind-ui-border-width: 1px;
+		--pagefind-ui-border-radius: 0.75rem;
+		--pagefind-ui-font: inherit;
+	}
+
+	/* 2. Floating Search Drawer (The large outer box) */
+	.pagefind-ui .pagefind-ui__drawer {
+		position: absolute !important;
+		top: 100%;
+		left: 0;
+		right: 0;
+		z-index: 999;
+		margin-top: 0.5rem;
+		max-height: 60vh;
+		overflow-y: auto;
+		padding: 1.25rem;
+		background-color: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--pagefind-ui-border-radius);
+		box-shadow:
+			0 10px 25px -5px rgba(0, 0, 0, 0.1),
+			0 8px 10px -6px rgba(0, 0, 0, 0.05);
+	}
+
+	/* Hide drawer when empty */
+	.pagefind-ui .pagefind-ui__drawer:empty,
+	.pagefind-ui .pagefind-ui__hidden {
+		display: none !important;
+	}
+
+	/* 3. Search Input Field */
+	.pagefind-ui .pagefind-ui__search-input {
+		font-size: 1rem;
+		font-weight: 400;
+		background-color: var(--color-background-elevated, #f9fafb);
+		transition: all 0.2s ease-in-out;
+	}
+
+	.pagefind-ui .pagefind-ui__search-input:focus {
+		background-color: var(--color-surface);
+		border-color: var(--pagefind-ui-primary);
+	}
+
+	/* 4. "Results :" Header Text */
+	.pagefind-ui .pagefind-ui__message {
+		padding: 0 0 1rem 0;
+		font-size: 1.1rem;
+		font-weight: 700;
+		color: var(--color-text-primary);
+	}
+
+	/* 5. Individual Result Items (The Rectangles in your drawing) */
+	.pagefind-ui .pagefind-ui__result {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		padding: 1.25rem !important;
+		margin-bottom: 0.75rem !important; /* Space between "boxes" */
+		border: 1px solid var(--color-border) !important;
+		border-radius: 0.75rem !important;
+		background-color: var(--color-surface);
+		transition:
+			transform 0.1s ease,
+			border-color 0.2s ease;
+	}
+
+	.pagefind-ui .pagefind-ui__result:hover {
+		border-color: var(--pagefind-ui-primary) !important;
+		background-color: var(--color-surface-hover, #f8fafc);
+	}
+
+	/* Result Typography */
+	.pagefind-ui .pagefind-ui__result-link {
+		font-weight: 700;
+		font-size: 1.125rem;
+		color: var(--color-text-primary);
+		text-decoration: none;
+	}
+
+	.pagefind-ui .pagefind-ui__result-link:hover {
+		text-decoration: underline;
+	}
+
+	.pagefind-ui .pagefind-ui__result-excerpt {
+		margin-top: 0.5rem;
+		color: var(--color-text-secondary, #4b5563);
+		line-height: 1.5;
+	}
+
+	/* Highlighted text inside results */
+	.pagefind-ui .pagefind-ui__result-excerpt mark {
+		background-color: transparent;
+		color: var(--pagefind-ui-primary);
+		font-weight: 700;
+	}
+
+	/* 6. Load More Button (The bottom long button) */
+	.pagefind-ui .pagefind-ui__button {
+		width: 100%; /* Makes it span full width like the mockup */
+		margin: 1rem 0 0 0 !important;
+		padding: 0.75rem !important;
+		border: 1px solid var(--color-border) !important;
+		border-radius: 0.5rem !important;
+		background-color: var(--color-surface) !important;
+		color: var(--color-text-primary) !important;
+		font-weight: 600 !important;
+		font-size: 0.95rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.pagefind-ui .pagefind-ui__button:hover {
+		background-color: var(--pagefind-ui-primary) !important;
+		color: #ffffff !important;
+		border-color: var(--pagefind-ui-primary) !important;
+	}
+</style>

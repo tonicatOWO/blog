@@ -5,6 +5,7 @@ import BaseHead from '@layout/BaseHead.astro';
 import Footer from '@layout/Footer.astro';
 import FormattedDate from '@utils/FormattedDate.astro';
 import Header from '@layout/Header.astro';
+import PagefindSearch from '@utils/PagefindSearch.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '@consts';
 
 const blogCollection = await getCollection('blog');
@@ -22,42 +23,74 @@ const posts = blogCollection.toSorted(
 	<body>
 		<Header />
 		<main class='w-90% mx-auto'>
+			<section class='text-center align-mid flex-1 justify-center mt-16 mb-12'>
+				<h1 class='text-5xl max-sm:text-3xl font-bold mb-4'>Blogs</h1>
+				<p
+					class='text-lg max-sm:text-base text-[var(--color-text-secondary)] mb-8'
+				>
+					Read my latest thoughts and updates on web development,
+					programming, and technology.
+				</p>
+				<div class='max-w-md mx-auto mb-10'>
+					<PagefindSearch />
+				</div>
+			</section>
 			<section>
-				<ul class='flex flex-wrap gap-2 list-none m-0 p-0 max-sm:gap-2'>
+				<ul class='flex flex-col gap-6 list-none m-0 p-0'>
 					{
-						posts.map((post, index) => (
-							<li
-								class={`w-[calc(50%-1rem)] max-sm:w-full max-sm:text-center ${index === 0 ? ' ' : ''}`}
-							>
+						posts.map(post => (
+							<li class='w-full'>
 								<a
 									href={`/blog/${post.id}/`}
-									class='block no-underline transition duration-200 ease-in-out group hover:bg-[var(--color-surface-hover)] rounded-xl p-2'
+									class='flex flex-col sm:flex-row gap-6 no-underline transition duration-200 ease-in-out group hover:bg-[var(--color-surface-hover)] rounded-xl p-4'
 								>
 									{post.data.heroImage && (
-										<Image
-											width={720}
-											height={360}
-											src={
-												post
-													.data
-													.heroImage
-											}
-											alt=''
-											class={`mb-2 rounded-3xl ${index === 0 ? 'first:w-full' : ''} transition duration-200 ease-in-out`}
-										/>
+										<div class='sm:w-1/3 shrink-0'>
+											<Image
+												width={
+													720
+												}
+												height={
+													360
+												}
+												src={
+													post
+														.data
+														.heroImage
+												}
+												alt=''
+												class='w-full h-full object-cover rounded-xl transition duration-200 ease-in-out shadow-sm group-hover:shadow-md'
+											/>
+										</div>
 									)}
-									<h4 class={`m-0 leading-none title ${index === 0 ? 'first:text-4xl max-sm:first:text-2xl' : ''}`}>
-										{post.data.title}
-									</h4>
-									<p class='m-0 date mt-2'>
-										<FormattedDate
-											date={
+									<div class='flex flex-col justify-center sm:w-2/3'>
+										<h4 class='m-0 text-2xl font-bold title'>
+											{
 												post
 													.data
-													.pubDate
+													.title
 											}
-										/>
-									</p>
+										</h4>
+										{post.data
+											.description && (
+											<p class='m-0 mt-3 text-[var(--color-text-secondary)] line-clamp-3'>
+												{
+													post
+														.data
+														.description
+												}
+											</p>
+										)}
+										<p class='m-0 date mt-auto pt-4 text-sm'>
+											<FormattedDate
+												date={
+													post
+														.data
+														.pubDate
+												}
+											/>
+										</p>
+									</div>
 								</a>
 							</li>
 						))
@@ -74,23 +107,23 @@ const posts = blogCollection.toSorted(
 		background-color: var(--color-background);
 		color: var(--color-text-primary);
 	}
-	
+
 	.title {
 		color: var(--color-text-primary);
 	}
-	
+
 	.date {
 		color: var(--color-text-tertiary);
 	}
-	
+
 	a:hover .title {
 		color: var(--color-primary);
 	}
-	
+
 	a:hover .date {
 		color: var(--color-primary-hover);
 	}
-	
+
 	/* Adding specific shadow based on theme variables for image */
 	a:hover img {
 		box-shadow: 0 10px 15px -3px var(--shadow-color-strong);
