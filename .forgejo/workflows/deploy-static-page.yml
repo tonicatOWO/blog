@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
         build-and-push:
-                runs-on: [docker-ssd-lxc, codeberg-medium]
+                runs-on: [docker-ssd-lxc]
                 container:
                         image: oven/bun:alpine
 
