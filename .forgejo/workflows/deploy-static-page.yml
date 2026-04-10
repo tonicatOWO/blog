@@ -1,0 +1,63 @@
+name: deploy-static-page
+
+on:
+        push:
+                branches:
+                        - trunk
+
+concurrency:
+        group: deploy-static-page-${{ forgejo.ref }}
+        cancel-in-progress: true
+
+jobs:
+        build-and-push:
+                runs-on: [codeberg-small, codeberg-tiny, codeberg-medium]
+                container:
+                        image: oven/bun:1
+
+                steps:
+                        - name: Checkout
+                          uses: https://data.forgejo.org/actions/checkout@v4
+                          with:
+                                  fetch-depth: 0
+
+                        - name: Setup git safe directory
+                          run: git config --global --add safe.directory "$FORGEJO_WORKSPACE"
+
+                        - name: Install dependencies
+                          run: bun install --frozen-lockfile
+
+                        - name: Build site
+                          run: bun run build
+
+                        - name: Publish dist to static_page
+                          if: ${{ forgejo.ref == 'refs/heads/trunk' }}
+                          env:
+                                  GIT_AUTHOR_NAME: forgejo-actions
+                                  GIT_AUTHOR_EMAIL: forgejo-actions@users.noreply.codeberg.org
+                                  GIT_COMMITTER_NAME: forgejo-actions
+                                  GIT_COMMITTER_EMAIL: forgejo-actions@users.noreply.codeberg.org
+                          run: |
+                                  set -euo pipefail
+
+                                  # 確認 build 產物存在
+                                  test -d dist
+
+                                  # 加入 .nojekyll 避免 GitHub Pages 忽略底線開頭的目錄
+                                  touch dist/.nojekyll
+
+                                  # 建立乾淨暫存目錄
+                                  rm -rf /tmp/static_page
+                                  mkdir -p /tmp/static_page
+                                  cp -a dist/. /tmp/static_page/
+
+                                  # 在暫存目錄初始化乾淨 git repo
+                                  cd /tmp/static_page
+                                  git init
+                                  git checkout -b static_page
+                                  git add .
+                                  git commit -m "deploy: ${FORGEJO_SHA}"
+
+                                  # Force-push 到同 repo 的 static_page branch
+                                  git remote add origin "https://oauth2:${{ secrets.DEPLOY_TOKEN }}@codeberg.org/${{ forgejo.repository }}.git"
+                                  git push --force origin static_page
