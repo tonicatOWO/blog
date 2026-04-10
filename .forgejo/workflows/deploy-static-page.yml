@@ -11,16 +11,7 @@ concurrency:
 
 jobs:
         build-and-push:
-                runs-on:
-                        [
-                                codeberg-small,
-                                codeberg-tiny,
-                                codeberg-medium,
-                                codeberg-small-lazy,
-                                codeberg-tiny-lazy,
-                                codeberg-medium-lazy,
-                                docker
-                        ]
+                runs-on: codeberg-small
                 container:
                         image: oven/bun:1
 
