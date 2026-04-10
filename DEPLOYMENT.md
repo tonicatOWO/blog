@@ -228,6 +228,10 @@ static_page/          ← 分支根目錄，直接包含建置產物
 2. 確認 `dist/` 目錄有建立
 3. 查看 Forgejo Actions 日誌中的錯誤
 4. 檢查 runner 是否可用（應使用 codeberg-small/tiny/medium）
+5. **容器問題**：如果出現 `apk: command not found` 錯誤，表示容器不是 Alpine
+   Linux
+      - 解決方案：使用 `oven/bun:alpine` 而不是 `oven/bun:1`
+      - 或使用通用的 git 安裝腳本（檢查並使用正確的套件管理器）
 
 #### 部署失敗
 
