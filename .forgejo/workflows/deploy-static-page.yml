@@ -11,7 +11,18 @@ concurrency:
 
 jobs:
         build-and-push:
-                runs-on: codeberg-small
+                runs-on:
+                        [
+                                codeberg-small,
+                                codeberg-tiny,
+                                codeberg-medium,
+                                codeberg-small-lazy,
+                                codeberg-tiny-lazy,
+                                codeberg-medium-lazy,
+                                codeberg-tinycodeberg-tiny-lazy,
+                                codeberg-smallcodeberg-small-lazy,
+                                codeberg-mediumcodeberg-medium-lazy
+                        ]
                 container:
                         image: oven/bun:1
 
@@ -20,6 +31,9 @@ jobs:
                           uses: https://data.forgejo.org/actions/checkout@v4
                           with:
                                   fetch-depth: 0
+
+                        - name: Install git
+                          run: apk add --no-cache git
 
                         - name: Setup git safe directory
                           run: git config --global --add safe.directory "$FORGEJO_WORKSPACE"
