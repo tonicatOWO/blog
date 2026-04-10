@@ -54,7 +54,7 @@ heroImage: '../../assets/VITE_X_SVELTE_5.png'
 <script lang="ts">
 	let {
 		text = 'Click me',
-		color = 'blue',
+		color = 'blue'
 	}: {
 		text?: string;
 		color?: 'blue' | 'green' | 'red';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	const skillGroups = [
 		{
-			name: 'Frontend',
+			colorClass: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/30',
 			items: [
 				'Astro',
 				'Svelte',
@@ -12,24 +12,24 @@
 				'CSS',
 				'SCSS',
 				'UnoCSS',
-				'Vite',
+				'Vite'
 			],
-			colorClass: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/30',
+			name: 'Frontend'
 		},
 		{
-			name: 'Backend',
+			colorClass: 'bg-[var(--color-info)]/10 text-[var(--color-info)] border-[var(--color-info)]/30',
 			items: [
 				'Go',
 				'Python',
 				'TypeScript',
 				'REST API',
 				'Discord bots',
-				'Shell scripting',
+				'Shell scripting'
 			],
-			colorClass: 'bg-[var(--color-info)]/10 text-[var(--color-info)] border-[var(--color-info)]/30',
+			name: 'Backend'
 		},
 		{
-			name: 'Tooling / Infra',
+			colorClass: 'bg-[var(--color-success)]/10 text-[var(--color-success)] border-[var(--color-success)]/30',
 			items: [
 				'Docker',
 				'Bun',
@@ -38,15 +38,15 @@
 				'Neovim',
 				'Yazi',
 				'Forgejo',
-				'GitHub',
+				'GitHub'
 			],
-			colorClass: 'bg-[var(--color-success)]/10 text-[var(--color-success)] border-[var(--color-success)]/30',
+			name: 'Tooling / Infra'
 		},
 		{
-			name: 'Other',
-			items: ['C++', 'GDScript', 'Rust', 'C'],
 			colorClass: 'bg-[var(--color-warning)]/10 text-[var(--color-warning)] border-[var(--color-warning)]/30',
-		},
+			items: ['C++', 'GDScript', 'Rust', 'C'],
+			name: 'Other'
+		}
 	];
 </script>
 
