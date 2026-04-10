@@ -42,6 +42,51 @@ base: '/hosting_blog',
 "build": "astro build"
 ```
 
+## Forgejo Actions 啟用
+
+**重要**：Forgejo Actions 預設是停用的，需要手動啟用。
+
+### 啟用步驟：
+
+1. **登入 Codeberg** 並前往儲存庫：`https://codeberg.org/tonicatOWO/blog`
+2. **進入設定**：點擊右上角的 "Settings"
+3. **找到 Units 設定**：在左側選單中找到 "Units" → "Overview"
+4. **啟用 Actions**：找到 "Actions" 選項並勾選啟用
+5. **儲存設定**：點擊頁面底部的儲存按鈕
+
+### 驗證是否啟用：
+
+- 啟用後，儲存庫頁面應顯示 "Actions" 標籤
+- 網址：`https://codeberg.org/tonicatOWO/blog/actions` 應可正常訪問
+
+## 重要區別：GitHub Pages vs Codeberg Pages
+
+根據官方文檔，我們需要澄清一個重要區別：
+
+### Codeberg Pages
+
+- 使用新的 git-pages 伺服器
+- 只能用在 `codeberg.page` 網域（如 `username.codeberg.page/repository`）
+- **不能用於自訂網域**（如 GitHub Pages）
+- 有現成的 Forgejo Action：`https://codeberg.org/git-pages/action@v2`
+
+### GitHub Pages（我們選擇的方案）
+
+- 使用 GitHub 的託管服務
+- 支援自訂網域和 GitHub 子網域
+- 我們使用專案頁面：`https://tonicatowo.github.io/hosting_blog`
+- **需要自訂工作流程**（不是使用 git-pages Action）
+
+**為什麼我們選擇 GitHub Pages？**
+
+1. 更好的全球 CDN 和效能
+2. 更穩定的服務
+3. 與 GitHub 生態系統更好的整合
+4. 支援自訂網域（未來可選）
+
+我們的工作流程是**自訂的**，不是使用 Codeberg Pages 的 git-pages
+Action，因為我們需要部署到 GitHub Pages。
+
 ## 密鑰設定
 
 ### Codeberg 密鑰
@@ -52,11 +97,21 @@ base: '/hosting_blog',
 | -------------- | ------------ | --------------------------------- |
 | `DEPLOY_TOKEN` | Codeberg PAT | 推送 `static_page` 分支的寫入權限 |
 
-**建立 Codeberg PAT：**
+**建立 Codeberg Personal Access Token (PAT)：**
 
-1. 前往 Codeberg → Settings → Applications
-2. 產生新權杖，選擇 `repo` 範圍
-3. 複製權杖值
+1. **登入 Codeberg**：`https://codeberg.org/user/settings/applications`
+2. **建立新權杖**：
+      - 點擊 "Generate new token"
+      - 名稱：`blog-deploy-token`
+      - 權限範圍：勾選 `repo`（讀寫儲存庫權限）
+      - 可選：設定過期時間
+3. **複製權杖**：**重要**：權杖只會顯示一次，請立即複製並妥善保存
+4. **儲存到 Secrets**：
+      - 前往儲存庫設定：`https://codeberg.org/tonicatOWO/blog/settings/secrets/actions`
+      - 點擊 "New secret"
+      - 名稱：`DEPLOY_TOKEN`
+      - 值：貼上剛才複製的 PAT
+      - 儲存
 
 ### GitHub 鏡像設定
 
@@ -105,6 +160,27 @@ static_page/          ← 分支根目錄，直接包含建置產物
 
 **重要**：沒有 `dist/` 資料夾包裝層 - 產物必須在根目錄。
 
+## 快速設定檢查清單
+
+在開始之前，請確認以下項目已完成：
+
+### Codeberg 設定
+
+- [ ] Forgejo Actions 已啟用（Settings → Units → Overview）
+- [ ] `DEPLOY_TOKEN` 已建立並儲存到 Secrets
+- [ ] 工作流程檔案存在：`.forgejo/workflows/deploy-static-page.yml`
+
+### GitHub 設定
+
+- [ ] 儲存庫 `tonicatowo/hosting_blog` 已建立
+- [ ] GitHub Pages 已設定（branch: `static_page`, folder: `/ (root)`）
+- [ ] GitHub PAT 已建立（用於鏡像同步）
+
+### 鏡像設定
+
+- [ ] Codeberg → GitHub 鏡像已設定
+- [ ] 同步 `static_page` 分支
+
 ## 驗證檢查清單
 
 部署後請驗證：
@@ -119,19 +195,55 @@ static_page/          ← 分支根目錄，直接包含建置產物
 - [ ] 資源路徑正確加上 `/hosting_blog` 前綴
 - [ ] 沒有 404 錯誤在瀏覽器控制台
 
-## 故障排除
+## 測試與驗證
 
-### 建置問題
+### 測試工作流程
+
+1. **觸發工作流程**：
+      - 推送一個小更改到 `trunk` 分支
+      - 例如：修改 README.md 或添加一個空行
+      - 指令：`git add . && git commit -m "test: trigger workflow" && git push origin trunk`
+
+2. **監控執行狀態**：
+      - 前往 `https://codeberg.org/tonicatOWO/blog/actions`
+      - 點擊最新的工作流程執行
+      - 檢查每個步驟是否成功
+
+3. **驗證分支建立**：
+      - 檢查是否建立了 `static_page` 分支
+      - 指令：`git ls-remote --heads origin`
+      - 或查看儲存庫分支頁面
+
+### 故障排除
+
+#### Forgejo Actions 未執行
+
+1. 確認 Actions 已啟用（Settings → Units → Overview）
+2. 檢查工作流程檔案路徑：`.forgejo/workflows/deploy-static-page.yml`
+3. 確認觸發條件：`on.push.branches: - trunk`
+
+#### 建置失敗
 
 1. 檢查 `bun run build` 在本地是否正常運作
 2. 確認 `dist/` 目錄有建立
 3. 查看 Forgejo Actions 日誌中的錯誤
+4. 檢查 runner 是否可用（應使用 codeberg-small/tiny/medium）
 
-### 部署問題
+#### 部署失敗
 
 1. 確認 `DEPLOY_TOKEN` 有儲存庫寫入權限
-2. 驗證工作流程中的推送 URL 符合您的儲存庫
-3. 檢查 `static_page` 分支結構（應為根目錄產物，不是 `dist/` 資料夾）
+2. 檢查 token 是否正確儲存在 Secrets 中
+3. 驗證 token 未過期
+4. 檢查工作流程中的 git push 指令
+
+#### GitHub Pages 未更新
+
+1. 確認 `static_page` 分支已推送到 GitHub
+2. 檢查 GitHub Pages 設定：branch: `static_page`, folder: `/ (root)`
+3. 等待幾分鐘讓 GitHub Pages 重新建置
+4. 檢查 GitHub Pages 建置日誌
+5. 驗證工作流程中的推送 URL 符合您的儲存庫
+6. 檢查 `static_page` 分支結構（應為根目錄產物，不是 `dist/` 資料夾）
 
 ### GitHub Pages 問題
 
