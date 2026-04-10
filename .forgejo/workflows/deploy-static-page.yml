@@ -18,7 +18,8 @@ jobs:
                                 codeberg-medium,
                                 codeberg-small-lazy,
                                 codeberg-tiny-lazy,
-                                codeberg-medium-lazy
+                                codeberg-medium-lazy,
+                                docker
                         ]
                 container:
                         image: oven/bun:1
