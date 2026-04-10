@@ -13,7 +13,7 @@ jobs:
         build-and-push:
                 runs-on: [codeberg-medium]
                 container:
-                        image: oven/bun:1
+                        image: oven/bun:alpine
 
                 steps:
                         - name: Checkout
@@ -21,8 +21,8 @@ jobs:
                           with:
                                   fetch-depth: 0
 
-                        - name: Install git
-                          run: apk add --no-cache git
+                        - name: Install git and other dependencies
+                          run: apk add --no-cache git curl
 
                         - name: Setup git safe directory
                           run: git config --global --add safe.directory "$FORGEJO_WORKSPACE"
