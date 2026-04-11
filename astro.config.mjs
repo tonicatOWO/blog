@@ -8,7 +8,6 @@ import svelte from '@astrojs/svelte';
 
 export default defineConfig({
 	site: 'https://tonicatowo.codeberg.page',
-	base: '/blog',
 	output: 'static',
 	integrations: [mdx(), sitemap(), svelte(), UnoCSS({ injectReset: true }), pagefind()],
 	vite: {
