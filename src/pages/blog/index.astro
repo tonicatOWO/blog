@@ -41,7 +41,7 @@ const posts = blogCollection.toSorted(
 						posts.map(post => (
 							<li class='w-full'>
 								<a
-									href={`/blog/${post.id}/`}
+									href={`${import.meta.env.BASE_URL}${post.id}/`}
 									class='flex flex-col sm:flex-row gap-6 no-underline transition duration-200 ease-in-out group hover:bg-[var(--color-surface-hover)] rounded-xl p-4'
 								>
 									{post.data.heroImage && (
