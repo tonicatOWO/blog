@@ -30,10 +30,9 @@ jobs:
                           run: |
                                   git config --global user.email "$CBMAIL"
                                   git config --global user.name "Forgejo Actions"
-                                  git clone --branch pages https://$CBTOKEN@codeberg.org/${{ github.repository }}.git _pages || \
-                                    git clone https://$CBTOKEN@codeberg.org/${{ github.repository }}.git _pages && cd _pages && git checkout --orphan pages && git rm -rf . && cd ..
+                                  git clone --branch pages https://$CBTOKEN@codeberg.org/${{ github.repository }}.git _pages
                                   cd _pages
-                                  git rm -rf . 2>/dev/null || true
+                                  git rm -rf .
                                   cp -ar ../dist/. .
                                   git add --all
                                   git diff --cached --quiet || git commit -m "Deploy: ${{ github.sha }}"
