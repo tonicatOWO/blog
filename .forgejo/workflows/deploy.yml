@@ -8,6 +8,7 @@ on:
 jobs:
         build-and-deploy:
                 runs-on: codeberg-tiny
+
                 steps:
                         - name: Checkout
                           uses: https://github.com/actions/checkout@v4
@@ -23,17 +24,9 @@ jobs:
                         - name: Build
                           run: bun run build
 
-                        - name: Deploy to Pages
-                          env:
-                                  CBTOKEN: ${{ secrets.CODEBERG_TOKEN }}
-                                  CBMAIL: ${{ secrets.CODEBERG_EMAIL }}
-                          run: |
-                                  git config --global user.email "$CBMAIL"
-                                  git config --global user.name "Forgejo Actions"
-                                  git clone --branch pages https://$CBTOKEN@codeberg.org/${{ github.repository }}.git _pages
-                                  cd _pages
-                                  git rm -rf .
-                                  cp -ar ../dist/. .
-                                  git add --all
-                                  git diff --cached --quiet || git commit -m "Deploy: ${{ github.sha }}"
-                                  git push origin pages
+                        - name: Deploy to Codeberg Pages
+                          uses: https://codeberg.org/git-pages/action@v2
+                          with:
+                                  site: 'https://${{ forge.repository_owner }}.codeberg.page/blog/'
+                                  token: ${{ forge.token }}
+                                  source: dist/
