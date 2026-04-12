@@ -7,8 +7,9 @@ import pagefind from 'astro-pagefind';
 import svelte from '@astrojs/svelte';
 
 export default defineConfig({
-	site: 'https://tonicatowo.codeberg.page',
+	site: 'https://blog.tonicatowo.xyz',
 	output: 'static',
+	trailingSlash: 'ignore',
 	integrations: [mdx(), sitemap(), svelte(), UnoCSS({ injectReset: true }), pagefind()],
 	vite: {
 		resolve: {
