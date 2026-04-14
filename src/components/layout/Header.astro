@@ -4,14 +4,14 @@ import ThemeToggle from '@utils/ThemeToggle.svelte';
 import { SITE_TITLE } from '@consts';
 ---
 
-<header class='nerd-mono py-4'>
-	<nav class='flex items-center justify-between mx-10'>
-		<h2 class='m-0 text-base'>
+<header class='nerd-mono py-3 sm:py-4'>
+	<nav class='flex items-center justify-between mx-4 sm:mx-6 md:mx-8 lg:mx-10'>
+		<h2 class='m-0 text-sm sm:text-base'>
 			<a href='/' class='text-inherit no-underline hover:text-inherit'
 				>{SITE_TITLE}</a
 			>
 		</h2>
-		<div class='flex items-center gap-6'>
+		<div class='flex items-center gap-4 sm:gap-5 md:gap-6'>
 			<HeaderLink href='/blog'>Blog</HeaderLink>
 			<ThemeToggle client:load />
 		</div>

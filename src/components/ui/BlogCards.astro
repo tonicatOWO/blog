@@ -10,16 +10,20 @@ const latestPost = blogCollection.toSorted(
 
 {
 	latestPost && (
-		<div class='p-8 rounded-2xl ds-bg-surface-elevated ds-border-subtle border border-solid mx-auto w-11/12 max-w-4xl nerd-mono'>
-			<h2 class='ds-text-tertiary text-xl mb-2'>{latestPost.data.title}</h2>
-			<p class='nerd-mono ds-text-primary mb-6'>{latestPost.data.description}</p>
-			<p class='m-0 date mt-2'>
+		<div class='p-4 sm:p-6 md:p-8 rounded-xl md:rounded-2xl ds-bg-surface-elevated ds-border-subtle border border-solid mx-auto w-full max-w-4xl nerd-mono'>
+			<h2 class='ds-text-tertiary text-lg sm:text-xl md:text-2xl mb-2'>
+				{latestPost.data.title}
+			</h2>
+			<p class='nerd-mono ds-text-primary text-sm sm:text-base md:text-lg mb-4 md:mb-6'>
+				{latestPost.data.description}
+			</p>
+			<p class='m-0 date mt-2 text-sm ds-text-tertiary'>
 				<FormattedDate date={latestPost.data.pubDate} />
 			</p>
-			<div class='flex gap-4 mt-8'>
+			<div class='flex gap-3 sm:gap-4 mt-6 md:mt-8'>
 				<a
 					href={`/blog/${latestPost.id}/`}
-					class='px-6 py-2 rounded-lg no-underline font-medium hover:opacity-90 transition-opacity btn-primary'
+					class='px-4 sm:px-5 md:px-6 py-1.5 sm:py-2 rounded-lg no-underline font-medium hover:opacity-90 transition-opacity btn-primary text-sm sm:text-base'
 				>
 					閱讀更多
 				</a>
