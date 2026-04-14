@@ -34,6 +34,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"@iconify-json/catppuccin": "^1.2.17",
 		"@iconify-json/lucide": "^1.2.101",
 		"@typescript-eslint/eslint-plugin": "^8.58.0",
 		"@typescript-eslint/parser": "^8.58.0",

@@ -4,14 +4,28 @@ import presetWind4 from '@unocss/preset-wind4';
 export default defineConfig({
 	presets: [
 		presetWind4({
-			preflights: { reset: true }
+			preflights: {
+				reset: true
+			}
 		}),
 		presetAttributify(),
 		presetIcons({
 			scale: 1.2,
+			extraProperties: {
+				display: 'inline-block',
+				'vertical-align': 'middle',
+				width: '1em',
+				height: '1em',
+				'min-width': '1em',
+				'line-height': '1'
+			},
 			collections: {
 				lucide: () =>
 					import('@iconify-json/lucide/icons.json').then(
+						i => i.default
+					),
+				catppuccin: () =>
+					import('@iconify-json/catppuccin/icons.json').then(
 						i => i.default
 					)
 			}
@@ -102,7 +116,15 @@ export default defineConfig({
 
 	theme: {
 		fontFamily: {
-			sans: ['Atkinson', 'ui-sans-serif', 'system-ui']
+			sans: ['Atkinson', 'ui-sans-serif', 'system-ui'],
+			mono: [
+				'ui-monospace',
+				'SFMono-Regular',
+				'Menlo',
+				'Monaco',
+				'Consolas',
+				'monospace'
+			]
 		},
 		colors: {
 			primary: '#2337ff',
@@ -114,7 +136,7 @@ export default defineConfig({
 
 	shortcuts: {
 		container: 'max-w-3xl mx-auto px-4 sm:px-6',
-		content: 'prose !max-w-none max-w-full',
+		content: 'prose !max-w-none w-full',
 		title: 'text-3xl sm:text-4xl font-bold tracking-tight',
 		meta: 'text-sm text-gray-500 flex items-center gap-2',
 		link: 'font-medium text-gray-700 transition-colors hover:text-blue-600'

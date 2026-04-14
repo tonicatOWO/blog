@@ -1,5 +1,7 @@
 # Blog Project
 
+A personal blog built with Astro, featuring a modern design with UnoCSS.
+
 ## Project Structure
 
 ```
@@ -33,3 +35,18 @@ npm run build
 - **Framework**: UnoCSS with Wind, Attributify, Icons, and Typography presets
 - **Configuration**: See `uno.config.ts` for theme and shortcuts
 - **Global CSS**: `src/styles/global.css` for font declarations
+
+## License
+
+This project uses a dual license structure:
+
+- **Code**: Licensed under the [Apache License 2.0](LICENSE) - applies to all
+  source code, configuration files, and scripts
+- **Content**: Blog posts and articles are licensed under
+  [Creative Commons Attribution-ShareAlike 4.0 International](LICENSE-content)
+
+Copyright 2026 tonicatOWO
+
+## Author
+
+Created by [tonicatOWO](https://codeberg.org/tonicatOWO)

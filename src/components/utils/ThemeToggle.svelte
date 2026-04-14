@@ -20,7 +20,7 @@
 </script>
 
 <button onclick={toggleTheme} aria-label="toggle theme">
-	<i class={`text-xl ${themeDark ? 'i-lucide-moon' : 'i-lucide-sun'}`}>hello</i></button
+	<i class={`text-xl ${themeDark ? 'i-lucide-moon' : 'i-lucide-sun'}`}>​</i></button
 >
 
 <style>

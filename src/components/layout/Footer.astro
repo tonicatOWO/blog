@@ -1,16 +1,54 @@
 ---
-const today = new Date();
+import writtenbyhuman from '@assets/Written-By-Human-Not-By-AI-Badge-white.svg';
 ---
 
-<footer class='w-screen py-10 mt-20 text-center'>
-	&copy; {today.getFullYear()} tonicatOWO. All rights reserved.
-	<!-- Social links placeholder -->
-</footer>
+<footer class='w-full py-12 mt-20 border-t ds-border-subtle ds-bg-background'>
+	<div
+		class='max-w-5xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8 md:gap-12'
+	>
+		<div class='flex flex-col items-center md:items-start gap-4'>
+			<a
+				href='https://codeberg.org/tonicatowo/blog'
+				target='_blank'
+				class='flex items-center gap-2 text-2xl font-bold ds-text-primary hover:text-[var(--color-primary)] transition-colors'
+			>
+				<i class='i-ri-github-fill'>​</i>tonicatowo/blog
+			</a>
 
-<style>
-	footer {
-		background-color: var(--color-background-subtle);
-		color: var(--color-text-secondary);
-		border-top: 1px solid var(--color-border-subtle);
-	}
-</style>
+			<p class='flex items-center gap-2 text-base ds-text-secondary'>
+				Made with
+				<i class='i-catppuccin:astro text-xl'>​</i>
+				<i class='i-catppuccin:svelte text-xl'>​</i>
+				<i class='i-catppuccin:unocss text-xl'>​</i>
+				and ❤️
+			</p>
+
+			<div
+				class='flex flex-wrap justify-center md:justify-start items-center gap-5 mt-2 ds-text-secondary'
+			>
+				<a
+					href='mailto:tonicatowo@proton.me'
+					class='text-2xl hover:text-[var(--color-primary)] transition-colors flex items-center'
+					aria-label='Email'
+				>
+					<i class='i-lucide-mail text-xl'>​</i>
+				</a>
+
+				<a
+					href='/rss.xml'
+					class='text-sm font-medium hover:text-[var(--color-primary)] transition-colors'
+				>
+					RSS
+				</a>
+			</div>
+		</div>
+
+		<div class='flex items-center justify-center shrink-0'>
+			<img
+				src={writtenbyhuman.src}
+				alt='Written by Human, Not by AI'
+				class='h-10 w-auto opacity-70 hover:opacity-100 transition-opacity'
+			/>
+		</div>
+	</div>
+</footer>
