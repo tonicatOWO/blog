@@ -13,3 +13,24 @@
 	clip-path: inset(50%);
 	white-space: nowrap;
 }
+
+/* Mobile-specific improvements */
+@media (max-width: 640px) {
+	/* Improve touch targets */
+	button,
+	a[role='button'],
+	.btn-primary {
+		min-height: 44px;
+		min-width: 44px;
+	}
+
+	/* Prevent text from being too small */
+	html {
+		-webkit-text-size-adjust: 100%;
+	}
+
+	/* Improve scrolling on mobile */
+	body {
+		-webkit-overflow-scrolling: touch;
+	}
+}
