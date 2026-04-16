@@ -8,14 +8,15 @@ import type { ImageMetadata } from 'astro';
 import { SITE_TITLE } from '@consts';
 
 interface Props {
-	title: string;
-	description: string;
-	image?: ImageMetadata;
+  title: string;
+  description: string;
+  image?: ImageMetadata | null;
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-const { title, description, image = FallbackImage } = Astro.props;
+const { title, description, image: heroImage } = Astro.props;
+const image = heroImage ?? FallbackImage;
 ---
 
 <!-- Global Metadata -->
