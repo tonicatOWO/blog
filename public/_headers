@@ -1,10 +1,5 @@
-/
-  Cloudflare-CDN-Cache-Control: max-age=3600, s-maxage=86400
-
-/blog/
-  Cloudflare-CDN-Cache-Control: max-age=3600, s-maxage=86400
-
-/blog/*
+/*
+  Cache-Control: public, max-age=0, must-revalidate
   Cloudflare-CDN-Cache-Control: max-age=3600, s-maxage=86400
 
 /_astro/*
@@ -17,4 +12,5 @@
   Cache-Control: public, max-age=86400
 
 /rss.xml
-  Cloudflare-CDN-Cache-Control: max-age=3600
+  Cache-Control: public, max-age=0, must-revalidate
+  Cloudflare-CDN-Cache-Control: max-age=3600, s-maxage=86400
