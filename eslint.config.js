@@ -69,19 +69,20 @@ export default [
                 }
         },
 
-        {
-                ignores: [
-                        'dist/**',
-                        'build/**',
-                        'node_modules/**',
-                        '.git/**',
-                        'public/**',
-                        '*.min.js',
-                        '*.config.js',
-                        '*.config.mjs',
-                        '*.config.ts',
-                        '.astro/**',
-                        '.svelte-kit/**'
-                ]
-        }
+{
+		ignores: [
+			'dist/**',
+			'build/**',
+			'node_modules/**',
+			'.git/**',
+			'public/**',
+			'*.min.js',
+			'*.config.js',
+			'*.config.mjs',
+			'*.config.ts',
+			'.astro/**',
+			'.svelte-kit/**',
+			'script/**/*.mjs'
+		]
+}
 ];
