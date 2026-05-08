@@ -11,9 +11,16 @@ type Props = CollectionEntry<'blog'>['data'];
 const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 ---
 
-<html lang='en'>
+<html lang='zh-Hant'>
 	<head>
-                <BaseHead title={title} description={description} image={heroImage} type='article'/>
+		<BaseHead
+			title={title}
+			description={description}
+			image={heroImage}
+			type='article'
+			pubDate={pubDate}
+			updatedDate={updatedDate}
+		/>
 	</head>
 
 	<body class='ds-bg-background ds-text-primary min-h-screen transition-colors duration-300'>
@@ -32,7 +39,7 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 									width={1020}
 									height={510}
 									src={heroImage}
-									alt=''
+									alt={title}
 									class='max-w-full h-auto max-h-[400px] rounded-xl border ds-border-subtle object-cover shadow-sm'
 								/>
 							</div>
