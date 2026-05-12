@@ -11,10 +11,10 @@ heroImage: '../../assets/VITE_X_SVELTE_5.png'
 > 5 入門講義」系列的第 0 篇，目標是把環境準備好，讓你能夠順利跑完後面四篇（元件、事件、Runes、元件拆分）。
 >
 > 系列：**(0) 環境設定** →
-> [(1) 元件與 props](./svelte-basics-1-components-props) →
-> [(2) 事件與綁定](./svelte-basics-2-events-binding) →
-> [(3) Runes 反應式狀態](./svelte-3-runes-reactive-state) →
-> [(4) 元件拆分與資料流](./svelte-4-component-splitting-data-flow)
+> [(1) 元件與 props](../svelte-basics-1-components-props) →
+> [(2) 事件與綁定](../svelte-basics-2-events-binding) →
+> [(3) Runes 反應式狀態](../svelte-3-runes-reactive-state) →
+> [(4) 元件拆分與資料流](../svelte-4-component-splitting-data-flow)
 
 ---
 
