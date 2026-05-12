@@ -3,7 +3,7 @@ title: 'Svelte 5 入門講義（零）：從零開始的環境設定'
 description:
         '寫給高中生與初學者的 Svelte 5 + SvelteKit 環境設定講義，使用 Bun
         建立第一個專案，並附上踩坑筆記。'
-pubDate: '2026-03-24'
+pubDate: '2026-05-12'
 heroImage: '../../assets/VITE_X_SVELTE_5.png'
 ---
 
@@ -161,8 +161,8 @@ my-svelte-app/
 
 ```svelte
 <script lang="ts">
- let name = $state('Stranger');
- let count = $state(0);
+	let name = $state('Stranger');
+	let count = $state(0);
 </script>
 
 <h1>Hello, {name}!</h1>
@@ -170,18 +170,18 @@ my-svelte-app/
 <input bind:value={name} placeholder="輸入你的名字" />
 
 <button onclick={() => count++}>
- u click {count} times
+	u click {count} times
 </button>
 
 <style>
- h1 {
-  color: #ff5722;
- }
- button {
-  padding: 8px 16px;
-  font-size: 16px;
-  cursor: pointer;
- }
+	h1 {
+		color: #ff5722;
+	}
+	button {
+		padding: 8px 16px;
+		font-size: 16px;
+		cursor: pointer;
+	}
 </style>
 ```
 
