@@ -149,6 +149,7 @@ heroImage: '../../assets/VITE_X_SVELTE_5.png'
 ### 3‑3 什麼時候不要用 props？
 
 - 如果某個變數只在元件內部用，用 `$state` 或單純變數就好，不用變成 `props`：
+
      ```svelte
      <script lang="ts">
      	let { label }: { label: string } = $props();
@@ -206,5 +207,3 @@ heroImage: '../../assets/VITE_X_SVELTE_5.png'
 	tags={['Svelte', 'Bun', 'SQLite']}
 />
 ```
-
----
