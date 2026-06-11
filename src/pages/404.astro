@@ -1,0 +1,48 @@
+---
+import BaseHead from '@layout/BaseHead.astro';
+import Footer from '@layout/Footer.astro';
+import Header from '@layout/Header.astro';
+---
+
+<!doctype html>
+<html lang='zh-Hant'>
+	<head>
+		<BaseHead title='404 - 找不到頁面' description='此頁面不存在' />
+	</head>
+	<body>
+		<Header />
+		<main class='nerd-mono flex-1 flex flex-col items-center justify-center gap-6 py-24 px-4'>
+			<div class='flex flex-col items-center gap-4 text-center'>
+
+				<h1 class='text-7xl sm:text-9xl font-bold tracking-tighter' style='color: var(--color-primary)'>
+					404
+				</h1>
+				<p class='text-xl sm:text-2xl font-semibold ds-text-primary'>
+					找不到這個頁面
+				</p>
+				<p class='text-base ds-text-secondary max-w-xs'>
+					你要找的頁面不存在，可能已被移除或輸入錯誤。
+				</p>
+			</div>
+
+			<a
+				href='/'
+				class='flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all border ds-border hover:border-[var(--color-primary)] ds-text-secondary hover:text-[var(--color-primary)] ds-bg-background-elevated hover:ds-bg-surface-hover'
+			>
+				<i class='i-lucide-arrow-left'></i>
+				回首頁
+			</a>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	body {
+		background-color: var(--color-background);
+		color: var(--color-text-primary);
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+	}
+</style>
