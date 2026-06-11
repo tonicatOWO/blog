@@ -229,12 +229,10 @@ mode），但**官方推薦用 runes**。看教學時注意日期，**2024 年�
 
 環境準備好了，按順序看：
 
-1. [講義（一）：元件與 props](./svelte-basics-1-components-props)
+1. [講義（一）：元件與 props](../svelte-basics-1-components-props)
    — 怎麼把 UI 拆成可重用的小積木
-2. [講義（二）：事件與綁定](./svelte-basics-2-events-binding) — 互動的基礎
+2. [講義（二）：事件與綁定](../svelte-basics-2-events-binding) — 互動的基礎
 3. [講義（三）：Runes / 反應式狀態](./svelte-3-runes-reactive-state) —
    `$state`、`$derived`、`$effect` 三大主角
-4. [講義（四）：元件拆分與資料流](./svelte-4-component-splitting-data-flow)
+4. [講義（四）：元件拆分與資料流](../svelte-4-component-splitting-data-flow)
    —讓專案規模長大也不會亂
-
----
