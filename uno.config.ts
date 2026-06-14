@@ -126,12 +126,6 @@ export default defineConfig({
 				'monospace'
 			]
 		},
-		colors: {
-			primary: '#2337ff',
-			secondary: '#000d8a',
-			background: 'rgb(15, 18, 25)',
-			text: 'rgb(96, 115, 159)'
-		}
 	},
 
 	shortcuts: {

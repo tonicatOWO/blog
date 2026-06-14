@@ -67,6 +67,17 @@ const jsonLd =
 			};
 ---
 
+<!-- Theme init: runs before first paint to prevent FOUC -->
+<script is:inline>
+	(function () {
+		var stored = localStorage.getItem('themeDark');
+		var dark =
+			stored === 'true' ||
+			(stored === null && matchMedia('(prefers-color-scheme: dark)').matches);
+		document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+	})();
+</script>
+
 <!-- Global Metadata -->
 <meta charset='utf-8' />
 <meta name='viewport' content='width=device-width,initial-scale=1' />
