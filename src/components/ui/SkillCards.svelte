@@ -12,7 +12,8 @@
 				'CSS',
 				'SCSS',
 				'UnoCSS',
-				'Vite'
+				'Vite',
+                                'react',
 			],
 			name: 'Frontend'
 		},
