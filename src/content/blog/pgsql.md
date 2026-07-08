@@ -2,6 +2,7 @@
 title: PostgreSQL 基本用法筆記
 description: Docker 啟動 PostgreSQL、建立 database/table/user、CRUD 操作、常用 psql 指令速查。
 pubDate: '2026-07-08'
+heroImage: ../../assets/place-landscape.jpg
 ---
 
 # docker啟動
