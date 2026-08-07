@@ -372,8 +372,7 @@ notes。而且參考 §6.5，core 跟 panel 的版本是綁在一起看的，只
 （`www.bing.com`
 也在那份清單裡。我用它是有意識的取捨，不是因為它排在選單上面 — 理由寫在 §4。）
 
-（順帶，那顆隨機按鈕本身也壞過：`fix: reality random target/sni buttons not working`
-# 4337。）
+（順帶，那顆隨機按鈕本身也壞過：`fix: reality random target/sni buttons not working`。）
 
 ### 6.9 面板產的分享連結不一定完整
 
