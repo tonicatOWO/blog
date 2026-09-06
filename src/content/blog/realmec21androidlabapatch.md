@@ -4,24 +4,33 @@ description: >-
   從 MTKClient 解鎖 Realme C21、備份 GPT 與關鍵分區、找回 Fastboot，到
   Magisk、NeoZygisk、Vector，最後改用 APatch 與 Magic Mount RS。這篇記錄我把一支退役 C21 變成 Android
   實驗機的完整過程，以及一路踩過的坑。
-pubDate: 2026-09-03T00:00:00.000Z
+pubDate: 2026-09-06T00:00:00.000Z
 heroImage: ../../assets/AndroidToDevBoard.png
 ---
 
+Realme C21 是我的第一支智慧型手機。
 
-Realme C21 是我的第一支智慧型手機。現在它已經退下主力位置，不拿來亂搞反而有點浪費。
+現在它早就退下主力位置了。日常使用的手機換成 Pixel 7a，C21 就算哪天真的被我刷到完全開不了機，也不會影響生活。
 
-我不是第一次玩 Android 刷機。Pixel 6a 之前也 Root 過，因為 Google 有提供完整的 Factory Image，就算真的玩壞了，大不了重新刷回去，心理壓力不大。
+既然如此，不拿來亂搞反而有點浪費。
 
-它後來也刷過 GrapheneOS、LineageOS 23 和幾套衍生 ROM，但分別遇到穩定性、PIN Bug 和 UI 跑版問題。玩了一圈，Pixel 6a 最後還是刷回比較單純的環境，現在專門拿來跑銀行 App。
+我不是第一次玩 Android 刷機。以前 Pixel 6a 也 Root 過，還刷過 GrapheneOS、LineageOS 和幾套衍生 ROM。Pixel 好處是 Google 有完整 Factory Image，真的玩壞了，大不了重新刷回去。
 
-日常主力則換成 Pixel 7a，目前跑的是 GrapheneOS。同樣是 GrapheneOS，在 7a 上穩定很多。
+Realme C21 就完全不是這回事。
 
-C21 就算刷壞也不會影響日常使用，正好拿來當 Android 實驗機。我先在它上面完成 Bootloader Unlock 和 Magisk Root，後面再一路測 NeoZygisk、Vector、LSPosed、Firewall、VPN Hotspot 與 GSI。Magisk 跑過一輪之後，我又把 Root 方案整套換成 APatch，繼續拿同一台機器測另一套架構。
+它沒有 Pixel 那套官方 Bootloader Unlock、Factory Image 和完整 Fastboot 流程。MediaTek 的 BROM、Preloader、GPT、LK、AVB 都得自己碰。
+
+也就是因為這樣，我最後乾脆把它當成一塊有螢幕、電池、4G、Wi-Fi 和完整 Android 硬體的實驗板。
+
+這一路先從 Bootloader Unlock、Magisk Root 開始，後來又換成 APatch，繼續測 NeoZygisk、Vector、網路控制和 systemless mount。
+
+玩到最後，我連原廠 Realme UI 都不想留了。
+
+於是下一步就是 GSI。
 
 ## 我的 Realme C21
 
-這次玩的機器是：
+這次使用的機器是：
 
 ```text
 Model: RMX3201
@@ -30,7 +39,6 @@ Android: 11
 SoC: MediaTek MT6765 / Helio G35
 HW Code: 0x766
 Storage: eMMC
-
 ```
 
 用 ADB 確認：
@@ -38,7 +46,6 @@ Storage: eMMC
 ```bash
 adb shell getprop ro.product.model
 adb shell getprop ro.build.display.id
-
 ```
 
 結果：
@@ -46,35 +53,11 @@ adb shell getprop ro.build.display.id
 ```text
 RMX3201
 RMX3201_11_C.19
-
 ```
 
-C21 麻煩的地方就在這裡：它沒有 Pixel 那套官方 Bootloader Unlock、Factory Image 和完整 Fastboot 流程，連 Fastboot 都被藏了起來。
+這類舊 MTK 手機很適合拿來理解 Android 開機鏈。
 
-這次主要靠 MTKClient 和 MediaTek BROM 處理。
-
-## 為什麼 C21 適合拿來學 MTK
-
-C21 這類舊 MTK 手機很適合拿來理解 Android 開機鏈，因為操作時會直接碰到：
-
-```text
-Preloader
-BROM
-Download Agent
-GPT
-seccfg
-LK
-AVB
-Fastboot
-Dynamic Partitions
-Magisk
-Zygisk
-LSPosed
-iptables
-
-```
-
-Pixel 的官方解鎖與映像檔流程省掉了不少底層步驟；C21 則迫使我直接處理 BROM、GPT、LK 和 AVB。
+Pixel 官方流程幫你藏掉不少東西，C21 則會逼你直接碰到 BROM、Preloader、Download Agent、GPT、`seccfg`、LK、AVB、Dynamic Partitions，以及後面的 Root、Zygisk、Treble 和 IMS。
 
 ## 安裝 MTKClient
 
@@ -84,7 +67,6 @@ Pixel 的官方解鎖與映像檔流程省掉了不少底層步驟；C21 則迫�
 
 ```bash
 sudo pacman -S python python-pip git libusb
-
 ```
 
 抓 MTKClient：
@@ -97,44 +79,44 @@ python -m venv .venv
 source .venv/bin/activate
 
 pip install -r requirements.txt
-
 ```
 
-如果 Linux 一直搶走 Preloader，可以先停用 ModemManager，再卸載 `cdc_acm`：
+如果 Linux 一直搶走 Preloader，可以先停掉 ModemManager，再卸載 `cdc_acm`：
 
 ```bash
 sudo systemctl stop ModemManager
 sudo modprobe -r cdc_acm
-
 ```
 
-後面可以再恢復，不需要永久停用。
+用完再恢復即可，不需要永久停用。
 
 ## 為什麼我最後全程都用 `mtk.py`
 
-我平常習慣用 `uv` 管 Python 環境，原本也打算照辦，但這次透過 `uv` 啟動 MTKClient 時一直拿不到 MediaTek USB 裝置。問題到底卡在哪一層我沒有繼續追，只確認改成 `venv + sudo` 後就能正常使用。
+我平常習慣用 `uv` 管 Python 環境，原本也打算照辦。
 
-我的想法很簡單：
+但這次透過 `uv` 跑 MTKClient 時，一直拿不到 MediaTek USB 裝置。到底是哪一層權限沒處理好，我沒有繼續追。
 
-> 我現在是要 Root 一台舊手機，不是要研究 Python packaging。
-
-所以我先不追 `uv` 的權限問題，直接改用傳統 `venv`：
+改成：
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-
 ```
 
-需要存取 MTK USB 裝置時就執行：
+再透過：
 
 ```bash
 sudo .venv/bin/python mtk.py ...
-
 ```
 
-後面的 MTKClient 操作因此都使用同一種呼叫方式：
+就能正常使用。
+
+我的想法很簡單：
+
+> 我現在是要 Root 一台舊手機，不是要研究 Python packaging。
+
+所以後面的 MTKClient 操作都統一用：
 
 ```bash
 sudo .venv/bin/python mtk.py printgpt
@@ -142,33 +124,21 @@ sudo .venv/bin/python mtk.py r ...
 sudo .venv/bin/python mtk.py w ...
 sudo .venv/bin/python mtk.py e ...
 sudo .venv/bin/python mtk.py da ...
-
 ```
-
-而不是：
-
-```bash
-uv run ...
-
-```
-
-### 那為什麼不用 `mtk_gui.py`？
 
 MTKClient 也有 GUI：
 
 ```bash
 python mtk_gui.py
-
 ```
 
-GUI 可以直接選擇分區和映像檔，操作步驟比 CLI 少。但我的 USB 存取最後是靠 `sudo` 解決，所以我試著執行：
+但我的 USB 存取最後是靠 `sudo` 解決，因此執行：
 
 ```bash
 sudo .venv/bin/python mtk_gui.py
-
 ```
 
-Qt 馬上噴出一整串錯誤：
+Qt 很快就炸掉：
 
 ```text
 Authorization required, but no authorization protocol specified
@@ -182,32 +152,25 @@ even though it was found.
 
 This application failed to start because no Qt platform plugin
 could be initialized.
-
-Available platform plugins are:
-eglfs, linuxfb, minimal, minimalegl, offscreen,
-vkkhrdisplay, vnc, wayland-brcm, wayland-egl,
-wayland, xcb.
-
-abort sudo .venv/bin/python mtk_gui.py
-
 ```
 
-問題不在 MTKClient 本身，而是 `sudo` 之後沒有完整繼承我的 Wayland／X11 圖形環境。要繼續修還得處理 `DISPLAY`、`XAUTHORITY` 和 Qt plugin，我懶得為了 GUI 再追這條線。
+問題不是 MTKClient 本身，而是 `sudo` 後沒有完整繼承我的 Wayland／X11 圖形環境。
 
-這類工具會直接改寫 GPT、Preloader、LK、NVRAM、`boot`、`vbmeta` 和 `seccfg`。我比較想在執行前看清楚完整指令，因此後來都用 CLI。
+要修還得繼續處理 `DISPLAY`、`XAUTHORITY` 和 Qt plugin。
 
-CLI 的好處是分區和動作都直接寫在指令裡。例如：
+我懶得修。
+
+反正這種工具會直接改 GPT、Preloader、LK、NVRAM、`boot`、`vbmeta` 和 `seccfg`，我反而比較想把完整指令攤在終端機上看清楚。
+
+例如：
 
 ```bash
 mtk.py r boot boot.bin
 mtk.py w lk lk.bin
 mtk.py e metadata,userdata,md_udc
-
 ```
 
-第一條讀 `boot`，第二條寫 `lk`，第三條則清除指定分區。至少分區和檔名都會完整留在終端機裡，執行前還能再看一眼。
-
-這不是最優雅的解法，只是它能動，而我不想再修 GUI。
+至少執行前還能再確認一次自己到底要動哪個分區。
 
 ## 第一個大坑：Handshake Failed
 
@@ -216,49 +179,44 @@ mtk.py e metadata,userdata,md_udc
 ```text
 Preloader - [LIB]: Status: Handshake failed, retrying...
 Port - Handshake failed after retries
-
 ```
 
-我原本以為是 MTKClient 相容性或進入模式的方法有問題，後來 `dmesg` 顯示真正的異常在 USB 連線。
+原本我以為是 MTKClient 相容性或進入模式有問題。
 
-我開著：
+後來開著：
 
 ```bash
 sudo dmesg -w
-
 ```
 
-手機其實有正常枚舉：
+才發現手機其實有正常枚舉：
 
 ```text
 idVendor=22d9
 idProduct=0006
 Product: OPPO Preloader
-
 ```
 
-另外也出現過：
+也出現過：
 
 ```text
 idVendor=0e8d
 idProduct=20ff
 Product: RMX3201
-
 ```
 
-但 kernel 同時在噴：
+但 kernel 同時一直噴：
 
 ```text
 device descriptor read/64, error -32
 error -71
 invalid wMaxPacketSize
 Cannot enable. Maybe the USB cable is bad?
-
 ```
 
-問題有一大部分根本只是 USB。
+至少我這次的 Handshake Failed，有很大一部分只是 USB 連線問題。
 
-換線、換 USB 連接埠，並避開奇怪的 hub 後，終於看到：
+換線、換 USB Port，避開奇怪的 Hub 後，終於看到：
 
 ```text
 Port - Device detected :)
@@ -266,21 +224,19 @@ Preloader - Detected regular mode !
 
 CPU: MT6765/MT8768t(Helio P35/G35)
 HW code: 0x766
-
 ```
 
-這次之後，我遇到 Handshake Failed 會先看線、USB 連接埠和 `dmesg`，MTKClient 參數反而放到後面。
+從這次之後，再看到 Handshake Failed，我會先檢查線、USB Port 和 `dmesg`，MTKClient 參數反而排後面。
 
-## 從 Preloader 進到 BROM
+## 從 Preloader 進 BROM
 
 成功抓到手機後，一開始顯示：
 
 ```text
 Detected regular mode
-
 ```
 
-Target config 是：
+Target config：
 
 ```text
 Target config: 0x5
@@ -288,7 +244,6 @@ Target config: 0x5
 SBC enabled: True
 SLA enabled: False
 DAA enabled: True
-
 ```
 
 接著 MTKClient 會嘗試讓 Preloader crash：
@@ -296,17 +251,17 @@ DAA enabled: True
 ```text
 Mtk - We're not in bootrom, trying to crash da...
 Exploitation - Crashing da...
-
 ```
 
 中間還出現：
 
 ```text
 DAA_SIG_VERIFY_FAILED (0x7024)
-
 ```
 
-我原本以為到這裡就失敗了，結果手機重新枚舉後，Target config 變成：
+原本看到這裡我以為失敗了。
+
+但手機重新枚舉後，Target config 變成：
 
 ```text
 Target config: 0xe5
@@ -315,14 +270,12 @@ Mem write auth: True
 Cmd 0xC8 blocked: True
 
 Preloader - BROM mode detected.
-
 ```
 
 接著 MTKClient 載入：
 
 ```text
 mt6765_payload.bin
-
 ```
 
 執行 Kamakiri：
@@ -331,7 +284,6 @@ mt6765_payload.bin
 Exploitation - Kamakiri Run
 Exploitation - Done sending payload...
 PLTools - Successfully sent payload
-
 ```
 
 後面則是：
@@ -342,21 +294,19 @@ Successfully uploaded stage 1
 DRAM setup passed
 Successfully uploaded stage 2
 DA Extensions successfully added
-
 ```
 
-整個流程是從 Preloader 進入 BROM，透過 Kamakiri 載入 Download Agent。到這一步後，MTKClient 才能直接讀寫 eMMC。
+到這裡，才算真正進入可以直接讀寫 eMMC 的狀態。
 
-## 先 `printgpt`，不要一上來就 unlock
+## 先 `printgpt`，不要急著解鎖
 
-我第一件事不是修改 Bootloader，而是查看 GPT：
+第一件事不是 unlock，而是先看 GPT：
 
 ```bash
 sudo .venv/bin/python mtk.py --debugmode printgpt
-
 ```
 
-這台 RMX3201 的 GPT 裡有：
+RMX3201 的 GPT 裡可以看到：
 
 ```text
 recovery
@@ -389,10 +339,9 @@ dtbo
 super
 cache
 userdata
-
 ```
 
-一些重要分區的大小：
+一些重要分區大小：
 
 ```text
 lk       = 4 MiB
@@ -401,25 +350,26 @@ boot     = 32 MiB
 seccfg   = 8 MiB
 nvram    = 64 MiB
 nvdata   = 64 MiB
-
 ```
 
-這台使用 Dynamic Partitions，因此 GPT 裡不會直接看到 `system`、`vendor` 和 `product`。它們都在 `super` 裡，後面處理 GSI 時還會碰到這個差異。
+這台使用 Dynamic Partitions，所以 GPT 不會直接看到 `system`、`vendor`、`product`。
+
+它們都在 `super` 裡。
+
+後面刷 GSI 時還會再碰到這件事。
 
 ## 備份比 Root 更重要
 
-開始修改前，先建立備份目錄：
+開始動任何東西前，先建備份目錄：
 
 ```bash
 mkdir -p backup/RMX3201_C19/{gpt,parts}
-
 ```
 
 備份 GPT：
 
 ```bash
 sudo .venv/bin/python mtk.py gpt backup/RMX3201_C19/gpt
-
 ```
 
 備份 Preloader：
@@ -429,10 +379,9 @@ sudo .venv/bin/python mtk.py r \
   preloader \
   backup/RMX3201_C19/preloader.bin \
   --parttype boot1
-
 ```
 
-另外我至少會保留：
+另外至少保留：
 
 ```text
 seccfg
@@ -455,28 +404,25 @@ vbmeta_vendor
 lk
 lk2
 recovery
-
 ```
 
-一次讀出這些分區：
+一次讀出：
 
 ```bash
 sudo .venv/bin/python mtk.py r \
 'seccfg,nvram,nvdata,nvcfg,proinfo,protect1,protect2,persist,boot,vbmeta,vbmeta_system,vbmeta_vendor,lk,lk2,recovery' \
 'backup/RMX3201_C19/parts/seccfg.bin,backup/RMX3201_C19/parts/nvram.bin,backup/RMX3201_C19/parts/nvdata.bin,backup/RMX3201_C19/parts/nvcfg.bin,backup/RMX3201_C19/parts/proinfo.bin,backup/RMX3201_C19/parts/protect1.bin,backup/RMX3201_C19/parts/protect2.bin,backup/RMX3201_C19/parts/persist.bin,backup/RMX3201_C19/parts/boot.bin,backup/RMX3201_C19/parts/vbmeta.bin,backup/RMX3201_C19/parts/vbmeta_system.bin,backup/RMX3201_C19/parts/vbmeta_vendor.bin,backup/RMX3201_C19/parts/lk.bin,backup/RMX3201_C19/parts/lk2.bin,backup/RMX3201_C19/parts/recovery.bin'
-
 ```
 
-最後建立 checksum：
+最後做 checksum：
 
 ```bash
 find backup/RMX3201_C19 -type f \
   -exec sha256sum {} \; \
   > backup/RMX3201_C19/SHA256SUMS
-
 ```
 
-尤其是這幾個檔案：
+尤其是：
 
 ```text
 preloader
@@ -484,76 +430,74 @@ nvram
 nvdata
 nvcfg
 proinfo
-
 ```
 
-`preloader`、`nvram`、`nvdata`、`nvcfg`、`proinfo` 這些我只留自己這台機器讀出來的版本，不會拿別台手機的檔案硬刷。Pixel 還有官方 Factory Image 可以救，MTK 的校正資料和裝置專屬資料一旦丟掉，下載一包 ROM 不一定補得回來。
+這些我只留自己手機讀出來的版本。
 
-這些備份我至少留兩份，一份放電腦，一份放 NAS，不和實驗環境放在同一顆硬碟。
+不會拿另一台手機的檔案硬刷。
+
+Pixel 有官方 Factory Image 可以救，MTK 的校正資料和裝置專屬資料一旦弄丟，下載一包 ROM 不一定補得回來。
+
+這些備份我至少留兩份，一份在電腦，一份在 NAS。
 
 ## 解鎖 Bootloader
 
-我的 GPT 裡有：
+GPT 裡有：
 
 ```text
 metadata
 userdata
 md_udc
-
 ```
 
-先清除這三個分區：
+先清除：
 
 ```bash
 sudo .venv/bin/python mtk.py e metadata,userdata,md_udc
-
 ```
 
-這一步會清掉手機上的資料。成功後會看到：
+這一步會清掉手機資料。
+
+成功後：
 
 ```text
 All partitions formatted.
-
 ```
 
 接著處理 `seccfg`：
 
 ```bash
 sudo .venv/bin/python mtk.py da seccfg unlock
-
 ```
 
-結果是：
+結果：
 
 ```text
 XFlashExt - Detected V4 Lockstate
 SecCfgV4 - hwtype found: V4
 
 DaHandler - [LIB]: Device is already unlocked
-
 ```
 
-MTKClient 讀到的 `seccfg` 已經處於 unlocked state。
+MTKClient 讀到的 `seccfg` 已經是 unlocked state。
 
 ## AVB 與 dm-verity
 
-這部分是我後來真的遇到開機問題才處理，不建議不分機型直接照抄。
+這部分是我後來真的碰到開機問題才處理，不是看到別人做就照抄。
 
-我先清除 `cache`：
+先清除 `cache`：
 
 ```bash
 sudo .venv/bin/python mtk.py e cache
-
 ```
 
 再執行：
 
 ```bash
 sudo .venv/bin/python mtk.py da vbmeta 3
-
 ```
 
-成功輸出：
+輸出：
 
 ```text
 Dumping partition "vbmeta"
@@ -562,83 +506,70 @@ Patching verification + verity
 Writing partition "vbmeta"
 
 Successfully patched vbmeta :)
-
 ```
 
-這會關閉 AVB verification 和 verity。
+這一步關閉 AVB verification 和 verity。
 
-## 確認解鎖狀態
-
-Android 開機後執行：
+Android 開機後確認：
 
 ```bash
 adb shell getprop ro.boot.flash.locked
 adb shell getprop ro.boot.vbmeta.device_state
 adb shell getprop ro.boot.verifiedbootstate
-
 ```
 
-我的結果是：
-
-```text
-0
-
-orange
-
-```
-
-這裡我主要看兩個值：
+我的結果可以看到：
 
 ```text
 ro.boot.flash.locked = 0
 ro.boot.verifiedbootstate = orange
-
 ```
 
-這台的 Bootloader 解鎖狀態已經成立。
+Bootloader 已經解鎖。
 
-## Bootloader 解鎖了，Fastboot 卻還是沒有
+## Bootloader 解了，Fastboot 還是沒有
 
-我執行：
+執行：
 
 ```bash
 adb reboot bootloader
-
 ```
 
-手機卻直接重新進入 Android，沒有進 Fastboot。Bootloader 雖然解鎖了，C21 原廠 LK 仍沒有把 Fastboot 開給我，因此我改用這篇 XDA 討論串提供的 modified LK：[How to install ROMs for Realme C21](https://xdaforums.com/t/how-to-install-roms-for-realme-c21.4573873/)。LK 是 MediaTek 的 Little Kernel bootloader。
+手機卻直接重新進 Android。
 
-刷之前先再次備份原始版本：
+C21 的 Bootloader 雖然已經 unlock，原廠 LK 還是沒有把 Fastboot 開出來。
+
+因此我改用 XDA 討論串提供的 modified LK：
+
+[How to install ROMs for Realme C21](https://xdaforums.com/t/how-to-install-roms-for-realme-c21.4573873/)
+
+刷之前再次備份：
 
 ```bash
 sudo .venv/bin/python mtk.py r \
   lk,lk2 \
   backup/RMX3201_C19/lk-stock.bin,backup/RMX3201_C19/lk2-stock.bin
-
 ```
 
-我只修改 `lk`，`lk2` 保留原廠版本：
+我只修改 `lk`，`lk2` 保留原廠：
 
 ```bash
 sudo .venv/bin/python mtk.py w lk lk.bin
-
 ```
 
 重新開機後，畫面出現：
 
 ```text
 welcom to fastboot
-
 ```
 
 拼字很有山寨味，不過 Fastboot 確實能用了。
 
-在電腦上確認：
+確認：
 
 ```bash
 fastboot getvar unlocked
 fastboot getvar product
-
 ```
 
 結果：
@@ -646,107 +577,101 @@ fastboot getvar product
 ```text
 unlocked: yes
 product: oppo6765
-
 ```
 
-不過這個 modified LK 提供的 Fastboot 沒有 Pixel 原生 Fastboot 那麼順，有時會卡住。遇到這種情況，我得拔掉 USB、重新接上，再執行一次指令才會恢復正常。
+這套 modified LK 的 Fastboot 沒有 Pixel 那麼穩。
+
+有時會卡住，拔掉 USB 再接一次才恢復。
+
+但至少有 Fastboot 了。
 
 ## OrangeFox Recovery
 
-我使用的 OrangeFox Recovery 來自這支影片：[YouTube](https://www.youtube.com/watch?v=GP2VhvBAwQY)，特別感謝影片作者提供檔案。
+OrangeFox Recovery 來自這支影片：
 
-這次沒有直接在電腦上手動 `fastboot flash recovery`。我的實際做法是在 Android 裡使用 TWRP App，授予 Root 權限後，讓 App 自動把 OrangeFox 刷入 Recovery 分區。後面改用 APatch 時，我也繼續沿用 OrangeFox，直接從 Recovery 刷入 APatch patched image。
+[YouTube](https://www.youtube.com/watch?v=GP2VhvBAwQY)
+
+這次我沒有在電腦上直接 `fastboot flash recovery`。
+
+實際做法是在 Android 裡用 TWRP App，給 Root 權限後讓它自動把 OrangeFox 寫進 Recovery。
+
+後來換 APatch 時，我也繼續使用 OrangeFox。
 
 ## Magisk Root
 
-前面已經從手機讀出原廠 `boot.bin`，先推到手機：
+前面已經把原廠 `boot.bin` 備份出來，先推進手機：
 
 ```bash
 adb push \
   backup/RMX3201_C19/parts/boot.bin \
   /sdcard/Download/boot.img
-
 ```
 
-接著在 Magisk 裡選擇：
+在 Magisk 裡：
 
 ```text
 Install
 → Select and Patch a File
 → boot.img
-
 ```
 
-完成後會得到：
+完成後得到：
 
 ```text
 magisk_patched-xxxxx.img
-
 ```
 
-現在 Fastboot 已經能用，可以直接刷入：
+有 Fastboot 後可以直接：
 
 ```bash
 fastboot flash boot magisk_patched-xxxxx.img
 fastboot reboot
-
 ```
 
-也可以透過 MTKClient 寫入：
+也可以繼續用 MTKClient：
 
 ```bash
 sudo .venv/bin/python mtk.py w boot magisk_patched-xxxxx.img
-
 ```
 
-如果無法開機，就把原廠 `boot` 刷回去：
+真的開不了機，就把 stock boot 寫回去：
 
 ```bash
 sudo .venv/bin/python mtk.py w \
   boot \
   backup/RMX3201_C19/parts/boot.bin
-
 ```
 
 驗證 Root：
 
 ```bash
 adb shell su -c id
-
 ```
 
-看到以下結果就完成了：
+看到：
 
 ```text
 uid=0(root)
-
 ```
 
-## NeoZygisk 與 Vector
+Magisk Root 就完成了。
 
-既然 C21 本來就是實驗機，我也沒打算停在 Magisk built-in Zygisk，而是另外測 NeoZygisk 和 Vector：
+## Magisk 階段的 Zygisk 與 Xposed
+
+C21 本來就是實驗機，所以我沒有停在 Magisk 內建 Zygisk。
+
+當時使用：
 
 ```text
 Magisk
 ├── Built-in Zygisk OFF
 ├── NeoZygisk
 └── Vector
-
 ```
 
-我選 NeoZygisk，主要是想測它和 Vector／LSPosed 的相容性，以及它在 injection、mount namespace 和 trace hiding 上的做法。
+NeoZygisk 負責 Zygisk runtime，Vector 則接 LSPosed Modules。
 
-設定上要注意：
-
-```text
-Magisk Built-in Zygisk OFF
-NeoZygisk ON
-
-```
-
-我也沒有同時再裝 Zygisk Next，一台機器只留一套 Zygisk runtime。
-
-Xposed 這邊使用 Vector，整體架構是：
+整體是：
 
 ```text
 Magisk
@@ -756,10 +681,9 @@ NeoZygisk
 Vector
    ↓
 LSPosed Modules
-
 ```
 
-目前安裝或準備測試的模組包括：
+測過或使用的模組包括：
 
 ```text
 Hide My Applist
@@ -767,121 +691,43 @@ NoStorageRestrict
 App Settings Reborn
 Core Patch
 LuckyTool
-
 ```
 
-## Hide My Applist
+Hide My Applist 主要拿來觀察不同 App 怎麼找 Root 痕跡。
 
-Hide My Applist 可以限制指定 App 查詢已安裝套件，例如隱藏 Magisk、Vector、Root App 或 Module Manager。
+NoStorageRestrict 則是處理 Android 對 `/Android/data` 和 `/Android/obb` 的限制。
 
-它當然擋不住所有 Root Detection；我主要拿它來看不同 App 會從哪些地方找 Root 痕跡。這台本來就不是銀行機，也不需要拿它冒險測銀行 App。
+App Settings Reborn 可以針對個別 App 改 DPI、語言、方向、全螢幕和通知等設定。
 
-## NoStorageRestrict
+Core Patch 用來測 APK downgrade、Package Installer 和部分 Signature restriction。
 
-Android 11 對以下目錄加了不少限制：
+LuckyTool 則因為 Realme／OPPO 都屬於 OPlus 系統，可以拿來碰 SystemUI、Launcher 和 OPlus Framework 相關修改。
 
-```text
-/Android/data
-/Android/obb
+我沒有把這台當銀行機，所以這些東西就是單純拿來測。
 
-```
+## Root 之後，我拿 C21 做什麼
 
-NoStorageRestrict 可以放寬 SAF 對這些目錄的限制，省掉我在 Android 11 上反覆跟 `/Android/data`、`/Android/obb` 權限打架。
+主力 Pixel 7a 跑 GrapheneOS 後，我很習慣它的 per-app Network permission。
 
-## App Settings Reborn
+Realme C21 原廠 Android 11 沒有同一套東西。
 
-App Settings Reborn 可以針對個別 App 調整：
-
-```text
-DPI
-字體
-解析度
-語言
-橫直向
-全螢幕
-保持螢幕常亮
-通知
-
-```
-
-C21 的原生解析度不高，針對個別 App 調整 DPI 特別實用。
-
-## Core Patch
-
-Core Patch 主要用來測試：
-
-```text
-APK downgrade
-Package Installer 限制
-部分 Signature restriction
-
-```
-
-我只會關掉實驗需要的限制，不會一次停用所有安全檢查。
-
-## LuckyTool
-
-Realme 和 OPPO 都屬於 OPlus 系統，因此 LuckyTool 也適合拿來測：
-
-```text
-SystemUI
-Launcher
-狀態列
-控制中心
-電池
-安裝器
-截圖
-OPlus Framework
-
-```
-
-新版 LuckyTool 主要照顧較新的 ColorOS。我的 C21 還停在 Android 11，所以只開確定能用的功能，不強行啟用不相容的項目。
-
-## 補上類似 GrapheneOS 的網路控制
-
-主力 Pixel 7a 跑 GrapheneOS 後，我已經很習慣它提供的 per-app Network permission。
-
-Realme C21 的原廠 Android 11 沒有相同功能。`android.permission.INTERNET` 屬於 normal permission，不能像 Location 一樣直接 revoke，因此我改用：
+所以我改用：
 
 ```text
 App Manager
 +
 AFWall+
-
 ```
 
-### App Manager
+App Manager 負責 Runtime Permission、AppOps、Activity、Service、Receiver、Provider、Background、Battery 和 Tracker。
 
-App Manager 主要用來管理：
+AFWall+ 則透過 `iptables`／netfilter 按 UID 控制網路。
 
-```text
-Runtime Permission
-AppOps
-Activity
-Service
-Receiver
-Provider
-Background
-Battery
-Tracker
+因為它不佔 Android VPN slot，後面還能跟 VPN Hotspot 一起用。
 
-```
+### 把 C21 當軟路由
 
-### AFWall+
-
-網路存取交給 AFWall+。手機已經 Root，所以它可以透過 `iptables`／netfilter，按照 UID 阻擋封包。
-
-例如在黑名單模式勾選某個 App 的 Wi-Fi、Mobile 和 VPN，就能直接禁止該 App 連外。
-
-它和 GrapheneOS 的 Network permission 不是同一套機制，但對我這個需求來說結果夠直接：指定的 App 不准連外。
-
-AFWall+ 也不會佔用 Android 的 VPN slot，對後面的軟路由用途很重要。
-
-## 把 C21 當軟路由
-
-目前我最常用到的功能，是把 C21 當成軟路由。
-
-目標架構是：
+目前我很喜歡的一種玩法是：
 
 ```text
 4G / Wi-Fi
@@ -895,92 +741,46 @@ VPN Hotspot
 Wi-Fi Hotspot
    ↓
 其他裝置
-
 ```
 
-Laptop、Tablet、TV 或另一支手機只要連上 C21 的 Hotspot，不需要個別設定 HTTP Proxy、SOCKS5 或 PAC，流量就能直接經過手機上的代理。
+Laptop、Tablet、TV 或另一支手機只要連 C21 Hotspot，就可以直接走手機上的代理。
 
-搭配 AFWall+，還能繼續控制：
+搭配 AFWall+，還能控制哪些 App 能直接上 WAN、哪些走 VPN、哪些完全不能連外。
 
-```text
-哪些 App 可以走 WAN
-哪些 App 完全不能上網
-哪些流量要經 VPN
-哪些流量可以 bypass
+這台手機本身就有螢幕、電池、4G 和 Wi-Fi，拿來當臨時 Gateway 很方便。
 
-```
+### 不登入 Google 帳號也能裝 App
 
-C21 本身就有螢幕、電池、4G 和 Wi-Fi，還能直接跑 Android App，拿來當臨時閘道器很方便。
+這台既然是實驗機，我不太想登入自己的 Google 帳號。
 
-## 不登入 Google 帳號也能裝 App
-
-這台是實驗機，我不太想登入自己的 Google 帳號。目前使用：
+所以當時使用：
 
 ```text
 Aurora Store
-├── 匿名存取 Google Play
-
 Droid-ify
-├── F-Droid
-
 Obtainium
-└── GitHub / GitLab Release
-
 ```
 
-Aurora Store 匿名登入後，大部分免費的 Play Store App 仍然可以直接下載，我也就不用把自己的 Google 帳號登入這台 C21。
+Aurora Store 匿名存取 Google Play，Droid-ify 處理 F-Droid，Obtainium 則直接跟 GitHub／GitLab Release。
 
-## Magisk 階段的 C21 配置
+## 後來我把 Magisk 換成 APatch
 
-在換成 APatch 以前，C21 大致維持這套配置：
+Magisk 這套跑過一輪後，我沒有讓兩套 Root 並存。
 
-```text
-Magisk
-├── NeoZygisk
-└── Vector
+我直接把 C21 換成 APatch。
 
-Vector
-├── Hide My Applist
-├── NoStorageRestrict
-├── App Settings Reborn
-├── Core Patch
-└── LuckyTool
-
-Root Apps
-├── App Manager
-├── AFWall+
-├── AdAway
-├── Neo Backup
-├── MMRL
-└── Termux
-
-Network
-├── NekoBox / sing-box
-└── VPN Hotspot
-
-Stores
-├── Aurora Store
-├── Droid-ify
-└── Obtainium
-
-```
-
-## 後來我把 Magisk 完全換成 APatch
-
-Magisk 這套跑過一輪後，我沒有保留兩套 Root 方案交替使用，而是直接把 C21 換成 APatch。
-
-目前使用的是：
+當時使用：
 
 ```text
 APatch: 0.13.3
 VersionCode: 11224
 ```
 
-這次是**完全換掉 Magisk**，不是兩邊並存。前面留下的原廠 `boot.bin`、MTKClient 寫回流程和救援方式則繼續保留，之後真的出問題時還有退路。
+APatch patched image 也不是透過 Fastboot 或 MTKClient 寫入。
 
-這次 APatch 的 patched image 也不是透過 Fastboot 或 MTKClient 寫入。我直接進 OrangeFox Recovery，選擇 APatch 產生的 image，將它刷到 `boot` 分區。
+我直接進 OrangeFox，把 APatch 產生的 image 刷進 `boot`。
 
-所以目前這台 C21 的 Root 切換流程，實際上是：
+流程是：
 
 ```text
 原廠 boot image
@@ -991,191 +791,101 @@ APatch patched image
    ↓
 OrangeFox Recovery
    ↓
-刷入 boot 分區
-   ↓
-重新開機
+boot
 ```
 
-### 第一個坑不是 Root，而是模組沒掛上去
+## APatch 的第一個坑：Metamodule
 
-APatch 本身取得 Root 沒有問題，但我進到模組頁後直接看到：
+APatch 本身取得 Root 沒有什麼問題。
+
+但進模組頁後，很快就看到：
 
 > APATCH 模組未掛載，因為未安裝元模組
 
-這也是我第一次很明顯感覺到，APatch 的模組管理方式和原本熟悉的 Magisk 不太一樣。
+這也是我從 Magisk 換到 APatch 後，第一個明顯感受到架構差異的地方。
 
-最後我選的是 **Magic Mount-rs**，沒有再混用其他掛載後端。這也是目前 APatch 配置裡實際使用的 Metamodule。
+APatch 能拿到 Root，不代表 APM 就會自動完成 systemless mount。
 
-目前的版本是：
+這一層還要處理 Metamodule，而且 Metamodule 自己也會有裝置和 ROM 的相容性問題。
+
+我一開始使用：
+
+[Mountify](https://github.com/backslashxx/mountify)
+
+但實際裝到這台 Realme C21 後，至少在我目前這套環境下，Mountify 沒有辦法正常工作。
+
+我沒有繼續硬修。
+
+直接換成：
+
+[Hybrid Mount](https://github.com/YuzakiKokuban/meta-hybrid_mount)
+
+Hybrid Mount 裝好後，我把掛載策略設成：
 
 ```text
-Name: Magic Mount-rs
-ID: magic_mount_rs
-Version: v4.0.8-900
-VersionCode: 400008
-Stat: September 3, 2026
-Size: 2.92 MB
+Overlay 優先
 ```
 
-一台機器只留一套 Metamodule，之後真的遇到掛載問題時也比較好排查，不用先處理多套 mount backend 互相影響的可能。
+重新開機，再檢查原本的 APatch Modules，這次就能正常掛載與運作了。
 
-### NeoZygisk 和 Vector 繼續留著
-
-換到 APatch 後，我沒有把原本的 Zygisk／Xposed 測試環境整套砍掉。現在仍然是 NeoZygisk 搭配 Vector，只是最底層的 Root Manager 已經從 Magisk 換成 APatch。
-
-目前這一層大致是：
+所以這台 C21 實際走過的是：
 
 ```text
 APatch
-├── Magic Mount-rs
+   ↓
+Mountify
+   ↓
+目前環境不相容
+   ↓
+Hybrid Mount
+   ↓
+Overlay 優先
+   ↓
+APatch Modules 正常掛載
+```
+
+最後保留下來的 Root 架構是：
+
+```text
+APatch
+├── Hybrid Mount
+│   └── Overlay 優先
 ├── NeoZygisk
 └── Vector
     └── LSPosed Modules
 ```
 
-NeoZygisk 目前使用：
+這裡我不會直接下「Hybrid Mount 比 Mountify 好」這種結論。
 
-```text
-Name: NeoZygisk
-ID: zygisksu
-Version: v2.4 (289-08080ef-release)
-VersionCode: 289
-Stat: August 31, 2026
-Size: 1.53 MB
-```
+我沒有在其他裝置和 ROM 上做足夠測試。
 
-Vector 則是：
+目前能確定的只有：
 
-```text
-Name: Vector
-ID: zygisk_vector
-Version: v2.2 (3080-88f8e1fa-JingMatrix-Vector)
-VersionCode: 3080
-Stat: August 31, 2026
-Size: 15.41 MB
-```
+Mountify 在我這組 RMX3201 環境下沒有正常工作；換成 Hybrid Mount，並以 Overlay 為優先後，APatch Modules 才正常掛上。
 
-到目前為止，這套在 C21 上開機還算穩定。先不急著下「比 Magisk 穩」或「比 Magisk 好」這種結論，畢竟現在測的時間還不長，後面還要繼續觀察。
+這種失敗路線我反而覺得值得記。
 
-### 現在實際裝的 APatch Modules
+只記最後裝了什麼，過幾個月回頭看，很容易忘記當初為什麼換掉前一套。
 
-目前 APatch 裡的模組清單如下。版本資訊直接照手機現在顯示的狀態記錄，之後如果更新，也比較容易回頭看是哪一版開始出問題。
-
-#### Magic Mount-rs
-
-```text
-Name: Magic Mount-rs
-ID: magic_mount_rs
-Version: v4.0.8-900
-VersionCode: 400008
-Stat: September 3, 2026
-Size: 2.92 MB
-```
-
-它現在是整套 systemless mount 的基底。
-
-#### bindhosts
-
-```text
-Name: bindhosts
-ID: bindhosts
-Version: v2.1.5
-VersionCode: 215
-Stat: August 31, 2026
-Size: 3.25 MB
-```
-
-這邊用來處理 hosts 類的系統層修改。
-
-#### Daily Job Scheduler（DJS）
-
-```text
-Name: Daily Job Scheduler (DJS)
-ID: djs
-Version: v2021.12.14
-VersionCode: 202112140
-Stat: August 31, 2026
-Size: 8.41 KB
-```
-
-#### Music Morphe
-
-```text
-Name: Music Morphe
-ID: music-morphe-jhc-arm64
-Version: v9.15.51 (patches 1.41.0.mpp)
-VersionCode: 20221078
-Stat: September 3, 2026
-Size: 3.29 KB
-```
-
-#### Advanced Charging Controller（ACC）
-
-```text
-Name: Advanced Charging Controller (ACC)
-ID: acc
-Version: v2023.10.16
-VersionCode: 202310160
-Stat: September 1, 2026
-Size: 294.61 KB
-```
-
-#### NeoZygisk
-
-```text
-Name: NeoZygisk
-ID: zygisksu
-Version: v2.4 (289-08080ef-release)
-VersionCode: 289
-Stat: August 31, 2026
-Size: 1.53 MB
-```
-
-#### Vector
-
-```text
-Name: Vector
-ID: zygisk_vector
-Version: v2.2 (3080-88f8e1fa-JingMatrix-Vector)
-VersionCode: 3080
-Stat: August 31, 2026
-Size: 15.41 MB
-```
-
-#### Universal GMS Doze
-
-```text
-Name: Universal GMS Doze
-ID: universal-gms-doze
-Version: 1.9.2
-VersionCode: 192
-Stat: September 1, 2026
-Size: 7.03 KB
-```
-
-這份清單現在比較像「我真的在用什麼」，而不是看到什麼 Root 模組就全部塞進去。效能 tweak、thermal disable、scheduler 魔改這類東西我還是沒打算碰。
-
-### APM 和 KPM 是兩條不同的路
+## APM 和 KPM
 
 APatch 另一個讓我想繼續玩的地方是 KPM。
 
-APM 比較接近我原本熟悉的 Magisk Module：重點還是在 Android userspace（使用者空間）和 systemless modification。KPM 則是 KernelPatch Module，可以把程式碼放到 kernel space（核心空間）執行。
+APM 比較接近原本熟悉的 Magisk Module，重點還是在 Android userspace 和 systemless modification。
 
-這也是我目前不急著亂裝 KPM 的原因。一般 hosts、Zygisk、LSPosed 或 systemless 修改，用現在這套 APM 就能處理，我沒有必要只因為 KPM 看起來比較底層，就把所有東西往 kernel 裡搬。
+KPM 則是 KernelPatch Module，可以直接讓程式碼進 kernel space 執行。
 
-尤其 C21 是老 MTK。真要開始測 KPM，我會一次只碰一個，先確定能正常開機、正常卸掉，再往下一個走。
+我目前沒有因為 KPM 看起來比較底層，就把什麼都往 kernel 裡塞。
 
-### APatch 跑下來和 Magisk 差在哪
+一般 hosts、Zygisk、LSPosed 和 systemless 修改，用 APM 就能做。
 
-目前最直接的差別不是「誰比較快」，而是整套東西拆分的方式。Magisk 的 Root、模組和 Zygisk 流程我已經很熟；APatch 這邊則多了一層 Metamodule，另外又把 APM 和 KPM 分開。
+C21 又是老 MTK。
 
-實際換過去之後，目前開機看起來還算穩定。至於長時間待機、重開次數增加、模組更新後會不會出現問題，這些還要再跑一陣子才知道。
-
-所以現在的狀態比較像：**APatch 已經正式接手這台 C21，但結論先欠著。**
+真要開始玩 KPM，我會一次只測一個，先確認能開機、能正常卸掉，再繼續。
 
 ## 我不打算塞一堆效能模組
 
-以前的 Root 文章很常安裝：
+以前 Root 文章很常看到：
 
 ```text
 RAM Booster
@@ -1183,21 +893,773 @@ GPU Turbo
 Thermal Disable
 Swap Booster
 Performance Engine
-
 ```
 
 我現在對這類模組沒什麼興趣。
 
-C21 使用的是 MT6765／Helio G35，再怎麼調，也改變不了它的硬體上限。
+C21 就是 MT6765／Helio G35。
 
-亂改 LMKD、thermal、scheduler、Power HAL 或 VM parameters，可能只讓短時間跑分變高，代價卻是發熱、降頻和耗電，實際操作未必更快。
+再怎麼調，也改不了硬體上限。
 
-我想從 Root 得到的是控制權，不是名稱很厲害但效果不明的 tweak。
+亂改 LMKD、thermal、scheduler、Power HAL 或 VM parameters，有可能只是短時間 benchmark 比較漂亮，實際代價卻是溫度、降頻、耗電或奇怪的不穩定。
 
-## 從手機變成實驗板
+我想從 Root 拿到的是控制權，不是名字很厲害但效果不明的 tweak。
 
-Android 11、Helio G35 和舊版 Realme UI 已經不適合當我的日常手機，反而讓我可以放心把那些不想放上 Pixel 7a 的東西丟到它上面測。
+## 下一步：乾脆連 Realme UI 都換掉
 
-第一次拿到 C21 時，我只把它當成一支 Android 手機。現在看到它，我想到的已經是 BootROM、Preloader、LK、AVB、Kernel、Framework、Zygote 到 App 這整條鏈。
+Root、APatch、Zygisk 和 systemless mount 都跑過一輪後，我開始覺得只改底層還不夠。
 
-這支人生第一台手機沒有真的退休，只是從日常手機變成了我的 Android 實驗板。
+Realme UI 2.0 本身才是我每天看到、也最想換掉的東西。
+
+原廠系統對我來說實在太臃腫。
+
+一些很基本的 native app，也會帶著我根本不需要的網路功能、推薦、廣告或額外服務。
+
+尤其 File Manager。
+
+我只想要瀏覽、複製、移動、刪除和重新命名本機檔案。
+
+不是打開一個檔案管理器，還得先想它為什麼要連網。
+
+Bootloader 都已經解了，那乾脆連 Android system 一起換掉。
+
+我想要的很單純：更接近 AOSP、沒有系統廣告，也不要替我預裝一堆背景服務。
+
+最後選的是 LineageOS Android 16 GSI。
+
+這個階段的環境：
+
+```text
+Kernel: Linux 4.19.127
+GSI: LineageOS 23.2
+Android: Android 16
+Architecture: arm64-ab
+```
+
+實際 image：
+
+```text
+LineageOS-23.2_GSI_treble_arm64-ab-VANILLA-20260603.img
+```
+
+## LineageOS Treble
+
+這次能在 Android 11 時代的 MTK 裝置上把 Android 16 GSI 跑到這個程度，很大一部分要感謝 Doze-off 的 LineageOS Treble 專案和 Treble 社群。
+
+專案：
+
+[Doze-off / lineage_treble](https://github.com/Doze-off/lineage_treble)
+
+這個專案除了 LineageOS GSI 本身，也整合了不少 TrebleDroid／PHH 的相容性處理，包括 device overlay、舊 vendor compatibility、BPF、hotspot、fingerprint、storage、IMS 和各種 vendor-specific fixes。
+
+對這種：
+
+```text
+Android 16 system
++
+Android 11 vendor
++
+MediaTek proprietary stack
+```
+
+的組合來說很重要。
+
+少了這些 compatibility layer，system 和舊 vendor 之間更容易出現各種奇怪的相容性問題。
+
+後面碰到的亮度和 IMS，其實就是很典型的例子。
+
+## Helio G35 跑 Android 16 的實際體感
+
+原本看到：
+
+```text
+Helio G35
++
+Android 16
+```
+
+我沒有抱太大期待。
+
+但實際裝完意外地不差。
+
+比較明顯的卡頓主要發生在剛登入系統、輸入 PIN 附近。
+
+進到桌面後，App 啟動、切換、通知欄、設定、瀏覽器和一般動畫都比我預期順很多。
+
+有些時候甚至覺得比 Realme UI 更俐落。
+
+這裡沒有做 benchmark，所以我不會直接說是因為少了哪些 OEM service 才變快。
+
+至少實際操作的體感就是如此。
+
+不過剛刷完，馬上就碰到兩個很明顯的問題：
+
+1. 螢幕亮度拉到 100% 還是非常暗。
+2. LTE、Mobile Data、SMS 都正常，但電話不能打。
+
+## 第一個問題：亮度 100%，sysfs 卻只有 255
+
+剛刷好 LineageOS 時，亮度拉到：
+
+```text
+100%
+```
+
+螢幕還是明顯偏暗。
+
+先從 Android framework 看：
+
+```text
+Display Brightness = 1.0
+mScreenBrightness = 1.0
+mActualBacklight = 1.0
+mLatestIntBrightness = 255
+```
+
+也就是 framework 自己認為現在已經是最大亮度。
+
+因此先排除 Battery Saver、Extra Dim、Auto Brightness 和 framework brightness limit。
+
+接著看 kernel backlight：
+
+```bash
+cat /sys/class/leds/lcd-backlight/max_brightness
+```
+
+結果：
+
+```text
+4095
+```
+
+Realme C21 的背光硬體 range 實際是：
+
+```text
+0 ~ 4095
+```
+
+也就是 12-bit。
+
+但把 Android 亮度設成最大：
+
+```bash
+adb shell cmd display set-brightness 1.0
+adb shell "cat /sys/class/leds/lcd-backlight/brightness"
+```
+
+得到：
+
+```text
+255
+```
+
+問題已經很明顯。
+
+Android 這邊送的是：
+
+```text
+0 ~ 255
+```
+
+Kernel backlight 要的是：
+
+```text
+0 ~ 4095
+```
+
+中間少了正確的 scaling。
+
+所以 Android 所謂的最大亮度：
+
+```text
+255 / 4095
+≈ 6.23%
+```
+
+對硬體來說其實只用了很小一部分 range。
+
+## 確認不是 panel 或 kernel 壞掉
+
+直接繞過 Android framework，把最大值寫進 sysfs：
+
+```bash
+adb shell "su -c 'echo 4095 > /sys/class/leds/lcd-backlight/brightness'"
+```
+
+螢幕立刻恢復正常亮度。
+
+所以 panel、背光硬體和 kernel driver 都能正常工作。
+
+問題落在：
+
+```text
+Android
+→ Lights HAL
+→ Backlight
+```
+
+這段 mapping。
+
+這台使用的 Lights service 是：
+
+```text
+android.hardware.lights-service.mediatek
+```
+
+把 vendor binary 抽出來後，也能直接找到：
+
+```text
+/sys/class/leds/lcd-backlight/brightness
+```
+
+也就是 Android 16 GSI 與原廠 MTK 12-bit backlight range 沒有正確對上。
+
+## 最後根本不用 patch
+
+原本我已經開始往 Lights HAL binary patch 的方向查。
+
+結果最後發現根本不用。
+
+進：
+
+```text
+Treble Settings
+→ Misc features / Backlight
+```
+
+打開：
+
+```text
+Force alternative backlight scale
+Set linear brightness curve
+```
+
+依設定提示關閉再重新打開螢幕後，亮度就正常了。
+
+真正處理 range mismatch 的是：
+
+```text
+Force alternative backlight scale
+```
+
+它把原本 Android 的 0～255 重新映射到硬體的 0～4095。
+
+`Set linear brightness curve` 則是另一回事。
+
+它主要影響亮度 slider 的曲線，不是解決 255／4095 這個 range mismatch。
+
+所以兩者要分開看：
+
+```text
+Force alternative backlight scale
+→ 修正硬體 brightness scale
+
+Set linear brightness curve
+→ 調整亮度曲線
+```
+
+這個問題最後完全不需要改 kernel。
+
+## 第二個問題：LTE 和 SMS 正常，但不能打電話
+
+亮度修好後，大部分功能都正常：
+
+```text
+SIM Detection
+4G / LTE
+Mobile Data
+SMS
+Wi-Fi
+Bluetooth
+```
+
+但 Voice Call 不行。
+
+SIM 能讀、LTE 能連、Data 能跑、SMS 能收發，代表 modem 和基本 RIL 並沒有整體失效。
+
+所以我開始往 IMS／VoLTE 查。
+
+## MTK VoLTE daemon 都還活著
+
+先看 process：
+
+```bash
+adb shell ps -A | grep -Ei 'volte|ims'
+```
+
+可以看到：
+
+```text
+volte_md_status
+volte_imsm_93
+volte_stack
+volte_ua
+volte_imcb
+```
+
+再看 property：
+
+```bash
+adb shell getprop | grep -Ei 'ims|volte|mims'
+```
+
+也有：
+
+```text
+persist.vendor.ims_support=1
+persist.vendor.mims_support=2
+persist.vendor.mtk.volte.enable=1
+persist.vendor.mtk_dynamic_ims_switch=1
+persist.vendor.volte_support=1
+ro.vendor.md_auto_setup_ims=1
+ro.vendor.mims_support=2
+```
+
+至少 vendor 端的 VoLTE daemon 和 IMS support property 都在。
+
+所以我接著查 Android framework 這一側有沒有 IMS implementation。
+
+## 真正缺的是 `com.mediatek.ims`
+
+執行：
+
+```bash
+adb shell pm list packages -f | grep -Ei \
+'com\.mediatek\.ims|me\.phh\.ims|ims'
+```
+
+LineageOS 裡已經有：
+
+```text
+ImsServiceEntitlement
+treble-overlay-telephony-mtk-ims.apk
+treble-overlay-telephony-hw-ims.apk
+```
+
+但沒有：
+
+```text
+com.mediatek.ims
+```
+
+也就是 overlay 在，真正負責跟 MTK proprietary IMS stack 溝通的 implementation 不在。
+
+大概是：
+
+```text
+Android Telephony
+        ↓
+MTK IMS Overlay
+        ↓
+com.mediatek.ims
+        ↓
+MTK vendor IMS stack
+```
+
+中間少了一層。
+
+## 補上 MTK IMS 後，電話恢復
+
+這台的：
+
+```text
+/system/framework/services.jar
+```
+
+裡存在：
+
+```text
+PackageManagerServiceUtils.PHH_SIGNATURE
+```
+
+因此使用：
+
+```text
+ims-mtk-u-resigned.apk
+```
+
+直接安裝：
+
+```bash
+adb install -r ims-mtk-u-resigned.apk
+```
+
+結果：
+
+```text
+Performing Streamed Install
+Success
+```
+
+確認 package：
+
+```bash
+adb shell pm path com.mediatek.ims
+```
+
+可以看到：
+
+```text
+package:/data/app/.../com.mediatek.ims.../base.apk
+```
+
+接著確認 Telephony 是否真的 bind：
+
+```bash
+adb shell dumpsys activity services com.mediatek.ims
+```
+
+可以看到：
+
+```text
+com.mediatek.ims/.MtkDynamicImsService
+```
+
+以及：
+
+```text
+requested=true
+received=true
+hasBound=true
+```
+
+再查 Binder service：
+
+```bash
+adb shell service check mtkIms
+```
+
+得到：
+
+```text
+Service mtkIms: found
+```
+
+這時直接打一通電話。
+
+可以正常打了。
+
+真正讓通話恢復的改動只有補上：
+
+```text
+com.mediatek.ims
+```
+
+沒有修改 modem，也沒有給 IMS Root。
+
+## 中途刷過 AxionOS
+
+排查 IMS 時，我一度懷疑 LineageOS 23.2 這個 build 是不是少了一些比較新的 MTK compatibility patch。
+
+因此中途也刷過：
+
+```text
+AxionOS 2.8 GSI
+```
+
+拿來做對照。
+
+Axion 的 Treble base 有一些較新的 legacy vendor compatibility、MTK RadioEx 和 SELinux compatibility 處理，所以當時想看看它能不能直接改善 IMS。
+
+結果裝到 C21 上後，反而碰到另一個更直接的問題。
+
+網路有異常。
+
+系統本身能開，也還能繼續做 Telephony／IMS 測試，但實際使用時連：
+
+```text
+google.com
+```
+
+都無法正常打開。
+
+對我來說這就不適合留著當日常系統。
+
+所以 AxionOS 這次只是短暫的 compatibility 對照測試。
+
+測完後我就刷回 LineageOS。
+
+## IMS 還有一個 SELinux compatibility bug
+
+雖然電話已經正常，但 debugging 過程還發現一個真正存在的 SELinux／property mismatch。
+
+`com.mediatek.ims` 第一次啟動時會出現：
+
+```text
+FATAL EXCEPTION: main
+Process: com.mediatek.ims
+```
+
+原因是：
+
+```text
+java.lang.RuntimeException:
+failed to set system property
+"vendor.ril.imsconfig.force.notify"
+to "1"
+```
+
+所以：
+
+```bash
+adb shell dumpsys activity services com.mediatek.ims
+```
+
+可能會看到：
+
+```text
+restartCount=1
+crashCount=1
+```
+
+但 framework 後面會重新啟動 IMS。
+
+第二次之後又能看到：
+
+```text
+requested=true
+received=true
+hasBound=true
+```
+
+同時：
+
+```bash
+adb shell service check mtkIms
+```
+
+仍然是：
+
+```text
+Service mtkIms: found
+```
+
+實際 Voice Call 也正常。
+
+所以這個 SELinux／property mismatch 確實存在，但它不是這次不能打電話的主因。
+
+真正缺的是：
+
+```text
+com.mediatek.ims
+```
+
+## Stock `precompiled_sepolicy` 反而變成答案本
+
+這台現在的組合其實很奇怪：
+
+```text
+Android 16 LineageOS system
++
+Android 11 Realme / MTK vendor
+```
+
+C.19 vendor 裡還留著：
+
+```text
+/vendor/etc/selinux/precompiled_sepolicy
+```
+
+那是原廠 stock system 和 vendor 時代產生的 merged SELinux policy。
+
+刷 GSI 後，現在實際使用的 policy 已經不是直接拿它來跑。
+
+而是：
+
+```text
+LineageOS Android 16 policy
++
+C.19 vendor CIL
++
+Treble compatibility mapping
+→ compile
+```
+
+不過原廠的 `precompiled_sepolicy` 反而因此變成很好用的答案本。
+
+可以拿來反查原廠對 MTK IMS property、radio domain 和 vendor service 原本怎麼授權。
+
+這也是 GSI debugging 很有趣的一部分。
+
+## 換掉預設 Launcher
+
+系統問題處理得差不多後，我也沒有繼續使用預設 Launcher。
+
+最後換成：
+
+[µLauncher](https://github.com/jrpie/launcher)
+
+F-Droid：
+
+[µLauncher on F-Droid](https://f-droid.org/packages/de.jrpie.android.launcher/)
+
+它的首頁非常簡單，基本只留下時間、日期和桌布。
+
+其他 App 靠 App List 或手勢開啟，手勢也能綁 Favorite Apps、音量、上一首／下一首、鎖定螢幕、手電筒、通知欄和 Quick Settings。
+
+對現在這台 C21 很適合。
+
+我就是想要一個沒有新聞、沒有推薦、沒有廣告，也不需要一直整理 icon 的桌面。
+
+## 現在這台 C21 的狀態
+
+最後保留下來的是：
+
+```text
+LineageOS 23.2
+Android 16
+```
+
+目前實測：
+
+```text
+Boot                 正常
+Display Brightness   正常
+Wi-Fi                正常
+Bluetooth            正常
+Dual SIM             正常
+Mobile Data          正常
+SMS                  正常
+MTK IMS              正常
+Outgoing Call        正常
+Voice Call           正常
+```
+
+桌面則是 µLauncher。
+
+登入、輸入 PIN 附近偶爾還是會有一小段卡頓，但進到桌面後，大多數使用場景都很順。
+
+對一台 2021 年、Helio G35、原廠 Android 11 的入門手機來說，我已經很滿意。
+
+## RMX3201 GSI 排錯速查
+
+如果其他 MTK GSI 也碰到類似問題，我現在會先看這幾件事。
+
+### 亮度異常低
+
+先看：
+
+```bash
+cat /sys/class/leds/lcd-backlight/max_brightness
+```
+
+再把 Android 亮度設最大：
+
+```bash
+adb shell cmd display set-brightness 1.0
+adb shell "cat /sys/class/leds/lcd-backlight/brightness"
+```
+
+如果看到：
+
+```text
+max_brightness = 4095
+actual         = 255
+```
+
+先進：
+
+```text
+Treble Settings
+→ Backlight
+→ Force alternative backlight scale
+```
+
+不要第一時間 patch kernel。
+
+### LTE／SMS 正常，但不能打電話
+
+先看有沒有：
+
+```bash
+adb shell pm list packages | grep com.mediatek.ims
+```
+
+如果沒有 `com.mediatek.ims`，先處理 IMS implementation。
+
+安裝後確認：
+
+```bash
+adb shell pm path com.mediatek.ims
+adb shell service check mtkIms
+```
+
+正常應該看到：
+
+```text
+Service mtkIms: found
+```
+
+再：
+
+```bash
+adb shell dumpsys activity services com.mediatek.ims
+```
+
+找：
+
+```text
+requested=true
+received=true
+hasBound=true
+```
+
+然後不要只盯 log。
+
+直接實際打一通電話。
+
+至少在 RMX3201／C.19 vendor 上，`crashCount=1` 不代表後面的 IMS 一定不能工作。
+
+## 從第一支智慧型手機變成 Android 實驗板
+
+第一次拿到 C21 時，我只把它當成一支 Android 手機。
+
+現在看到它，我想到的已經是：
+
+```text
+BootROM
+Preloader
+Download Agent
+GPT
+LK
+AVB
+Kernel
+Framework
+Zygote
+Treble
+Lights HAL
+IMS
+SELinux
+```
+
+這整條鏈。
+
+一路從 MTKClient 解鎖、找回 Fastboot、Magisk、APatch、Metamodule，再到 Android 16 GSI、12-bit backlight 和 MediaTek IMS，很多原本看起來像「手機壞了」的問題，最後其實只是某一層沒有接上。
+
+亮度問題最後不需要 patch kernel。
+
+只是：
+
+```text
+Android 0 ~ 255
+→
+Hardware 0 ~ 4095
+```
+
+中間少了正確 scaling。
+
+電話問題表面上可以一路懷疑 modem、RIL、RadioEx、CarrierConfig 和 SELinux。
+
+真正讓它恢復的關鍵卻只是：
+
+```text
+com.mediatek.ims
+```
+
+APatch 也一樣。
+
+Root 能用，不代表 systemless mount 就一定能用；Mountify 在這組環境下不行，換成 Hybrid Mount 並以 Overlay 優先後才正常掛上。
+
+這支人生第一台智慧型手機沒有真的退休。
+
+只是從日常手機，變成了我的 Android 實驗板。
