@@ -1,9 +1,9 @@
 ---
 title: Android Root 到底改了什麼：Magisk、KernelSU 與 APatch 的架構差異
 description: >-
-  重新拆解 Magisk、KernelSU 與 APatch 的 Root 架構，從 userspace、LKM 到 kernel binary
-  patch，理解三者到底是在什麼時間點把 Root 能力放進系統。
-pubDate: 2026-08-19T00:00:00.000Z
+        重新拆解 Magisk、KernelSU 與 APatch 的 Root 架構，從 userspace、LKM 到
+        kernel binary patch，理解三者到底是在什麼時間點把 Root 能力放進系統。
+pubDate: 2026-09-19T00:00:00.000Z
 heroImage: ../../assets/Magisk_KernelSU_APatch_root_framworkVS.png
 ---
 
@@ -13,7 +13,8 @@ Magisk 比較偏 userspace，APatch 是 kernel-based root。
 
 這句不能說錯，但也沒解釋多少東西。
 
-後來重新去看 Magisk、KernelSU 和 KernelPatch 的實作，我才發現比較好理解這三套 Root 的方式，不是看 Manager 長什麼樣，也不是看它能不能裝 Magisk Module。
+後來重新去看 Magisk、KernelSU 和 KernelPatch 的實作，我才發現比較好理解這三套 Root 的方式，不是看 Manager 長什麼樣，也不是看它能不能裝 Magisk
+Module。
 
 而是看：
 
@@ -66,7 +67,9 @@ mount namespace
 
 這些東西影響。
 
-所以 Magisk、KernelSU、APatch 真正不同的地方，不只是「誰幫你變 UID 0」，而是誰掌握 privilege control，以及這個控制點到底放在 userspace 還是 kernel。
+所以 Magisk、KernelSU、APatch 真正不同的地方，不只是「誰幫你變 UID
+0」，而是誰掌握 privilege
+control，以及這個控制點到底放在 userspace 還是 kernel。
 
 ## Magisk：先接管 Android early userspace
 
@@ -98,7 +101,9 @@ magiskd
 Android userspace
 ```
 
-`magiskinit` 會取代原本 ramdisk 裡最先執行的 `init`，先處理 Magisk 自己需要的 mount、SELinux policy 和 service injection，最後才繼續執行原本 Android `init`。
+`magiskinit` 會取代原本 ramdisk 裡最先執行的
+`init`，先處理 Magisk 自己需要的 mount、SELinux policy 和 service
+injection，最後才繼續執行原本 Android `init`。
 
 真正的 `magiskd` 則是在後面的 `post-fs-data` 階段才啟動。
 
@@ -182,7 +187,8 @@ source-level integration
 
 不是拿已經編譯好的 kernel binary 再往裡面硬塞東西。
 
-官方 GKI mode 則是直接使用已經整合 KernelSU 的 Generic Kernel Image 去取代原本 kernel。
+官方 GKI mode 則是直接使用已經整合 KernelSU 的 Generic Kernel
+Image 去取代原本 kernel。
 
 所以從概念上來看：
 
@@ -250,7 +256,8 @@ LKM 不是。
 
 APatch 最有趣的地方就在這。
 
-它也把 Root 放在 kernel space，但它既不是 KernelSU built-in 那種 source integration，也不是 KernelSU LKM 那種 `insmod .ko`。
+它也把 Root 放在 kernel space，但它既不是 KernelSU built-in 那種 source
+integration，也不是 KernelSU LKM 那種 `insmod .ko`。
 
 它走的是：
 
@@ -260,7 +267,8 @@ binary patching
 
 APatch 底下真正做這件事的是 KernelPatch。
 
-官方自己的描述也很直接：只靠 stripped Linux kernel image，就能做 static kernel image patch、runtime code loading、inline hook 和 syscall table hook。
+官方自己的描述也很直接：只靠 stripped Linux kernel image，就能做 static kernel
+image patch、runtime code loading、inline hook 和 syscall table hook。
 
 所以：
 
@@ -447,7 +455,9 @@ symbol
 
 找出來。
 
-目前 patcher 本身就會取得 `paging_init`、symbol lookup anchor、`kallsyms_lookup_name` 等位置，再把需要的資訊寫入 KernelPatch 的 setup data。
+目前 patcher 本身就會取得 `paging_init`、symbol lookup
+anchor、`kallsyms_lookup_name` 等位置，再把需要的資訊寫入 KernelPatch 的 setup
+data。
 
 所以 APatch 不需要：
 
@@ -621,7 +631,8 @@ KPM
 = Kernel Patch Module
 ```
 
-APatch 官方直接把 KPM 描述成類似 Loadable Kernel Module，可以讓 code 在 kernel space 執行，並提供 inline hook、syscall table hook 等能力。
+APatch 官方直接把 KPM 描述成類似 Loadable Kernel Module，可以讓 code 在 kernel
+space 執行，並提供 inline hook、syscall table hook 等能力。
 
 所以 APatch 可以再拆成：
 
@@ -685,7 +696,8 @@ KernelPatch
 root / KPM / privileged operation
 ```
 
-目前 KernelPatch 的 SuperCall implementation 裡就能看到 KPM load、unload、control，以及其他 kernel-side operation。
+目前 KernelPatch 的 SuperCall implementation 裡就能看到 KPM
+load、unload、control，以及其他 kernel-side operation。
 
 這也是為什麼 APatch 不能只理解成：
 
@@ -757,4 +769,5 @@ KernelSU LKM 是 kernel 啟動後載入 module。
 
 APatch 則是在 kernel 啟動以前，直接把已經編譯好的 binary 改掉。
 
-搞懂這件事後，再回去看 `boot.img`、KernelPatch、KPM，甚至之後想碰 kernel hook，都不會再只剩下「反正它就是 kernel root」這種模糊印象。
+搞懂這件事後，再回去看 `boot.img`、KernelPatch、KPM，甚至之後想碰 kernel
+hook，都不會再只剩下「反正它就是 kernel root」這種模糊印象。
