@@ -28,14 +28,17 @@ const SOURCE_EXTS = new Set([
 	'.mjs'
 ]);
 const EXTRA_CHARS_FILE = './extra-chars.txt';
-const PATCH_EXTS = new Set(['.html', '.css', 'js']);
-// Match url(...) in CSS @font-face. Quote-agnostic, base-path-agnostic.
-const FONT_URL_RE =
-	/url\((["']?)([^"')]*?)_astro\/fonts\/([^"')]+\.woff2)\1\)/g;
+const PATCH_EXTS = new Set(['.html', '.css', '.js']);
+// Match any url(...) that ends in a font file. Directory-agnostic on purpose:
+// the blog serves fonts from /fonts/ (public/) while Astro's hashed assets live
+// under /_astro/fonts/. Rewriting is keyed on the file name (see
+// patchAssetUrls), so an already-patched /assets/fonts/subset/*.subset.woff2 is
+// left untouched on rebuilds.
+const FONT_URL_RE = /url\((["']?)([^"')]+?\.(?:woff2?|ttf|otf))\1\)/g;
 // Match HTML attributes like <link rel="preload" href="..."> or <link rel="prefetch">.
 // Critical: without this, browsers preload the original (full-size) font.
 const FONT_ATTR_RE =
-	/\b(href|src)=(["'])([^"']*?)_astro\/fonts\/([^"']+\.woff2)\2/g;
+	/\b(href|src)=(["'])([^"']+?\.(?:woff2?|ttf|otf))\2/g;
 
 const BASE_CHARS =
 	' !"#$%&\'()*+,-./0123456789:;<=>?@' +
@@ -202,28 +205,46 @@ async function collectPatchTargets(dir, out = []) {
 	return out;
 }
 
-// Rewrite _astro/fonts/<name>.woff2 → assets/fonts/subset/<name>.subset.woff2
-// in HTML/CSS/JS.
-// Preserves any base prefix (/2026/, /, etc.) and the original quoting style.
-async function patchAssetUrls() {
+// Rewrite any font reference → /assets/fonts/subset/<stem>.subset.woff2, keyed
+// on the known font set. Directory-agnostic (handles /fonts/ from public/ and
+// Astro's hashed /_astro/fonts/) and idempotent: a patched path's stem is
+// "<stem>.subset", which is not in the map, so rebuilds leave it untouched.
+async function patchAssetUrls(fonts) {
+	const subsetNameOf = new Map(
+		fonts.map(fp => {
+			const stem = basename(fp, extname(fp));
+			return [stem, `${stem}.subset.woff2`];
+		})
+	);
+	const toSubset = path => {
+		const stem = basename(path, extname(path));
+		const sub = subsetNameOf.get(stem);
+		return sub ? `/assets/fonts/subset/${sub}` : null;
+	};
+	// A reference is "still original" if its stem maps to one of the fonts we
+	// are subsetting — i.e. it points at the full-size file we must not delete
+	// until every reference has been rewritten.
+	const stillOriginal = text => {
+		for (const m of text.matchAll(FONT_URL_RE)) if (toSubset(m[2])) return true;
+		for (const m of text.matchAll(FONT_ATTR_RE))
+			if (toSubset(m[3])) return true;
+		return false;
+	};
+
 	const files = await collectPatchTargets(DIST_DIR);
 	let patched = 0;
 	const remaining = [];
-	const toSubsetPath = (prefix, name) =>
-		`${prefix}assets/fonts/subset/${name.replace(/\.woff2$/, '')}.subset.woff2`;
 	for (const fp of files) {
 		const original = await readFile(fp, 'utf-8');
 		let updated = original
-			.replace(
-				FONT_URL_RE,
-				(_, q, prefix, name) =>
-					`url(${q}${toSubsetPath(prefix, name)}${q})`
-			)
-			.replace(
-				FONT_ATTR_RE,
-				(_, attr, q, prefix, name) =>
-					`${attr}=${q}${toSubsetPath(prefix, name)}${q}`
-			);
+			.replace(FONT_URL_RE, (m, q, path) => {
+				const sub = toSubset(path);
+				return sub ? `url(${q}${sub}${q})` : m;
+			})
+			.replace(FONT_ATTR_RE, (m, attr, q, path) => {
+				const sub = toSubset(path);
+				return sub ? `${attr}=${q}${sub}${q}` : m;
+			});
 		// Without crossorigin, the @font-face CORS fetch can't hit the preload
 		// cache — browser logs "preloaded resource was not used" and re-downloads
 		// the font.
@@ -236,13 +257,12 @@ async function patchAssetUrls() {
 			await writeFile(fp, updated);
 			patched++;
 		}
-		if (/_astro\/fonts\/[^"')\s]+\.woff2/.test(updated))
-			remaining.push(fp);
+		if (stillOriginal(updated)) remaining.push(fp);
 	}
 	console.log(`  Patched ${patched} file(s)`);
 	if (remaining.length > 0) {
 		console.warn(
-			`  ⚠ ${remaining.length} file(s) still reference _astro/fonts/*.woff2:`
+			`  ⚠ ${remaining.length} file(s) still reference unsubsetted fonts:`
 		);
 		for (const fp of remaining.slice(0, 5))
 			console.warn(`    - ${fp}`);
@@ -331,7 +351,7 @@ if (cacheHit) {
 
 // HTML/CSS/JS patching is idempotent and cheap — always run so a fresh
 // `astro build` gets re-patched even when chars/fonts didn't change.
-const fullyPatched = await patchAssetUrls();
+const fullyPatched = await patchAssetUrls(fonts);
 
 await writeFile(cacheKeyFile, cacheKey);
 
