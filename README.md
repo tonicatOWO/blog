@@ -27,7 +27,7 @@
 - Styling: UnoCSS
 - Content: Astro Content Collections
 - Search: astro-pagefind / Pagefind
-- Deploy: Wrangler with static assets from `dist/`
+- Deploy: Cloudflare Workers Builds (auto rebuild on push)
 
 ## Project Structure
 
@@ -93,7 +93,6 @@ bun run preview
 | `bun run format:check` | Check formatting                           |
 | `bun run publish`      | Publish posts from an Obsidian vault       |
 | `bun run publish:dry`  | Dry-run the Obsidian publish flow          |
-| `bun run deploy`       | Deploy `dist/` with Wrangler               |
 
 ## Writing Posts
 
@@ -156,13 +155,16 @@ The script:
 
 ## Deployment
 
-The site builds to `dist/` as a static Astro output. `wrangler.jsonc` deploys
-that directory as Cloudflare static assets.
+Deployment is automated through Cloudflare Workers Builds, which is connected
+to the repository. There is no local deploy step:
 
 ```bash
-bun run build
-bun run deploy
+git push origin trunk
 ```
+
+Cloudflare runs `bun run build` and publishes `dist/`. `wrangler.jsonc` only
+declares the Worker name and static assets directory — it is not invoked from
+the command line.
 
 Caching rules are defined in `public/_headers`, and redirects are defined in
 `public/_redirects`.
